@@ -3,39 +3,60 @@ import { mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-// Create .cronify directory at home directory
-const dir = join(homedir(), '.cronify');
-mkdirSync(dir, { recursive: true });
+export type Task = {
+  id: number;
+  command: string;
+  cron_string: string;
+  next_run: number;
+  status: 'active' | 'paused' | 'completed';
+  created_at: number;
+  updated_at: number;
+};
 
-// Create cronify.sqlite database inside the .cronify directory
-const dbPath = join(dir, 'cronify.sqlite');
-const db = new Database(dbPath);
+export type Log = {
+  id: number;
+  task_id: number;
+  executed_at: number;
+  stdout: string | null;
+  stderr: string | null;
+  exit_code: number | null;
+};
 
-// Create necessary tables and indexes
-db.run(`
-    CREATE TABLE IF NOT EXISTS tasks(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        command TEXT NOT NULL,
-        cron_string TEXT NOT NULL,
-        next_run INTEGER NOT NULL,
-        status TEXT NOT NULL DEFAULT 'active',
-        created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-        updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
-    );
+export function initDatabase(): Database {
+  // Create .cronify directory at home directory
+  const dir = join(homedir(), '.cronify');
+  mkdirSync(dir, { recursive: true });
 
-    CREATE TABLE IF NOT EXISTS logs(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        task_id INTEGER NOT NULL,
-        executed_at INTEGER NOT NULL,
-        stdout TEXT,
-        stderr TEXT,
-        exit_code INTEGER,
-        FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
-    );
+  // Create cronify.sqlite database inside the .cronify directory
+  const dbPath = join(dir, 'cronify.sqlite');
+  const db = new Database(dbPath);
 
-    CREATE INDEX IF NOT EXISTS idx_tasks_next_run ON tasks(next_run);
+  // Create necessary tables and indexes
+  db.run(`
+        CREATE TABLE IF NOT EXISTS tasks(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            command TEXT NOT NULL,
+            cron_string TEXT NOT NULL,
+            next_run INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active',
+            created_at INTEGER NOT NULL DEFAULT (CAST((julianday('now') - 2440587.5)*86400000 AS INTEGER)),
+            updated_at INTEGER NOT NULL DEFAULT (CAST((julianday('now') - 2440587.5)*86400000 AS INTEGER))
+        );
 
-    CREATE INDEX IF NOT EXISTS idx_logs_task_id ON logs(task_id);
-`);
+        CREATE TABLE IF NOT EXISTS logs(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER NOT NULL,
+            executed_at INTEGER NOT NULL,
+            stdout TEXT,
+            stderr TEXT,
+            exit_code INTEGER,
+            FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+        );
 
-export default db;
+        CREATE INDEX IF NOT EXISTS idx_tasks_next_run ON tasks(next_run);
+
+        CREATE INDEX IF NOT EXISTS idx_logs_task_id ON logs(task_id);
+    `);
+
+  return db;
+}
