@@ -30,6 +30,7 @@ export async function executeTask(db: Database, task: Task) {
     stderrText = error.message || 'Unknown spawn error';
     exitCode = -1;
   } finally {
+    // Mark the task as inactive so that it can re-run again
     db.query(
       `
               UPDATE tasks

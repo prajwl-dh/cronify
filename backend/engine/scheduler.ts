@@ -9,7 +9,7 @@ export function startScheduler(db: Database) {
   setInterval(() => {
     const now = Date.now();
 
-    // Fetch all active tasks where the next_run timestamp is in the past or exactly now
+    // Fetch all inactive tasks where the next_run timestamp is in the past or exactly now
     const getDueTasks = db.query(`
         SELECT * FROM tasks
         WHERE status = 'inactive' AND next_run <= ?
@@ -41,6 +41,7 @@ export function startScheduler(db: Database) {
 
           // Route the task based on the cron validation
           if (!isCron) {
+            // Runs only once now or at a specified timestamp
             db.query(
               `
               UPDATE tasks 
@@ -51,6 +52,7 @@ export function startScheduler(db: Database) {
 
             console.log(`🏁 Task ${task.id} marked as obsolete.`);
           } else {
+            // Runs on interval based on cron string
             db.query(
               `
               UPDATE tasks
@@ -71,7 +73,6 @@ export function startScheduler(db: Database) {
       }
     });
 
-    //Execute the transaction
     processDueTasks(dueTasks);
   }, 10000);
 }
