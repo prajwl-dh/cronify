@@ -30,6 +30,13 @@ export async function executeTask(db: Database, task: Task) {
     stderrText = error.message || 'Unknown spawn error';
     exitCode = -1;
   } finally {
+    db.query(
+      `
+              UPDATE tasks
+              SET status = 'inactive'
+              WHERE id = ? AND status = 'active'`,
+    ).run(task.id);
+
     // Log the result into logs table
     try {
       db.query(

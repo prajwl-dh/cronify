@@ -12,7 +12,7 @@ export function startScheduler(db: Database) {
     // Fetch all active tasks where the next_run timestamp is in the past or exactly now
     const getDueTasks = db.query(`
         SELECT * FROM tasks
-        WHERE status = 'active' AND next_run <= ?
+        WHERE status = 'inactive' AND next_run <= ?
         `);
 
     const dueTasks = getDueTasks.all(now) as Task[];
@@ -23,39 +23,48 @@ export function startScheduler(db: Database) {
     const processDueTasks = db.transaction((tasks: Task[]) => {
       for (const task of tasks) {
         try {
-          const isOneTime =
-            task.cron_string === '@once' ||
-            !isNaN(Date.parse(task.cron_string));
+          let isCron = false;
+          let nextRunMs = 0;
 
-          if (isOneTime) {
+          // Ask the Cron library to validate the string first
+          if (task.cron_string !== '@once') {
+            try {
+              // If this succeeds, it is a valid repeating cron string
+              const interval = CronExpressionParser.parse(task.cron_string);
+              nextRunMs = interval.next().getTime();
+              isCron = true;
+            } catch (cronError) {
+              // It threw an error, so it MUST be a Date timestamp or an invalid string
+              isCron = false;
+            }
+          }
+
+          // Route the task based on the cron validation
+          if (!isCron) {
             db.query(
               `
               UPDATE tasks 
-              SET status = 'completed', updated_at = ? 
+              SET status = 'obsolete', updated_at = ? 
               WHERE id = ?
             `,
             ).run(Date.now(), task.id);
 
-            console.log(`🏁 Task ${task.id} marked as completed.`);
+            console.log(`🏁 Task ${task.id} marked as obsolete.`);
           } else {
-            const updateTaskNextRun = db.query(`
+            db.query(
+              `
               UPDATE tasks
-              SET next_run = ?, updated_at = ?
-              WHERE id = ?`);
-
-            // Calculate the next execution time based on the cron string
-            const interval = CronExpressionParser.parse(task.cron_string);
-            const nextRunMs = interval.next().getTime();
-
-            // Immediately update the DB so the task isn't accidentally fired twice
-            updateTaskNextRun.run(nextRunMs, Date.now(), task.id);
+              SET status = 'active', next_run = ?, updated_at = ?
+              WHERE id = ?
+            `,
+            ).run(nextRunMs, Date.now(), task.id);
           }
 
-          // Fire off the execution engine
+          // 3. Fire off the execution engine
           executeTask(db, task);
         } catch (error) {
           console.error(
-            `[Scheduler Error] Task ${task.id}: Invalid cron string.`,
+            `[Scheduler Error] Task ${task.id} failed to process.`,
             error,
           );
         }

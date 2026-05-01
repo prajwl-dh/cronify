@@ -8,7 +8,7 @@ export type Task = {
   command: string;
   cron_string: string;
   next_run: number;
-  status: 'active' | 'paused' | 'completed';
+  status: 'active' | 'inactive' | 'obsolete';
   created_at: number;
   updated_at: number;
 };
@@ -38,7 +38,7 @@ export function initDatabase(): Database {
             command TEXT NOT NULL,
             cron_string TEXT NOT NULL,
             next_run INTEGER NOT NULL,
-            status TEXT NOT NULL DEFAULT 'active',
+            status TEXT NOT NULL DEFAULT 'inactive',
             created_at INTEGER NOT NULL DEFAULT (CAST((julianday('now') - 2440587.5)*86400000 AS INTEGER)),
             updated_at INTEGER NOT NULL DEFAULT (CAST((julianday('now') - 2440587.5)*86400000 AS INTEGER))
         );
