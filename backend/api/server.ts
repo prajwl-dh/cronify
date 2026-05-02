@@ -6,6 +6,7 @@ export function startServer(db: Database, port: number) {
     fetch(req) {
       const url = new URL(req.url);
 
+      // GET /api/tasks endpoint
       if (url.pathname === '/api/tasks' && req.method === 'GET') {
         const tasks = db.query('SELECT * FROM tasks').all();
         return new Response(JSON.stringify(tasks), {

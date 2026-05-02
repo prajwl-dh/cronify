@@ -62,7 +62,7 @@ export function startScheduler(db: Database) {
             ).run(nextRunMs, Date.now(), task.id);
           }
 
-          // 3. Fire off the execution engine
+          // Fire off the execution engine
           executeTask(db, task);
         } catch (error) {
           console.error(
