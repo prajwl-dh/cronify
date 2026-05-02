@@ -14,6 +14,14 @@ export function startServer(db: Database, port: number) {
         });
       }
 
+      // GET /api/logs endpoint
+      if (url.pathname === '/api/logs' && req.method === 'GET') {
+        const logs = db.query('SELECT * FROM logs').all();
+        return new Response(JSON.stringify(logs), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
       return new Response('Not Found', { status: 404 });
     },
   });
