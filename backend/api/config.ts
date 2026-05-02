@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { logger } from '../utils/logger';
 
 export type CronifyConfig = {
   port: number;
@@ -11,6 +12,8 @@ const DEFAULT_CONFIG: CronifyConfig = {
 };
 
 export function initConfig(): CronifyConfig {
+  console.log('⚙️  Loading configs ...');
+  logger.info('⚙️  Loading configs ...');
   const dir = join(homedir(), '.cronify');
   const configPath = join(dir, 'config.json');
 
@@ -21,7 +24,9 @@ export function initConfig(): CronifyConfig {
 
   // If config.json file does not exist, create it from DEFAULT_CONFIG
   if (!existsSync(configPath)) {
-    console.log('⚙️ Creating default config.json...');
+    const message = '⚙️ Creating default config.json...';
+    console.log(message);
+    logger.info(message);
     writeFileSync(configPath, JSON.stringify(DEFAULT_CONFIG, null, 2), 'utf-8');
     return DEFAULT_CONFIG;
   }
@@ -41,10 +46,9 @@ export function initConfig(): CronifyConfig {
 
     return finalConfig;
   } catch (error) {
-    console.error(
-      '❌ Failed to parse config.json. Using fallback defaults.',
-      error,
-    );
+    const message = '❌ Failed to parse config.json. Using fallback defaults.';
+    console.error(message, error);
+    logger.info(message + error);
     return DEFAULT_CONFIG;
   }
 }

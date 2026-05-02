@@ -4,7 +4,7 @@ import type { Task } from '../db/schema';
 import { executeTask } from './runner';
 
 export function startScheduler(db: Database) {
-  console.log('🕒 Cronify Scheduler started...');
+  console.log('🕒 Cronify Scheduler started ...');
 
   setInterval(() => {
     const now = Date.now();

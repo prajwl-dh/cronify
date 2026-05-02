@@ -13,6 +13,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "cron-parser": "^5.5.0"
+    "cron-parser": "^5.5.0",
+    "pino": "^10.3.1"
   }
 }

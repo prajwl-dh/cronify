@@ -2,6 +2,7 @@ import { Database } from 'bun:sqlite';
 import { mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { logger } from '../utils/logger';
 
 export type Task = {
   id: number;
@@ -31,6 +32,8 @@ export function initDatabase(): Database {
   const dbPath = join(dir, 'cronify.sqlite');
   const db = new Database(dbPath);
 
+  console.log('💾 Initializing Database ...');
+  logger.info('💾 Initializing Database ...');
   // Create necessary tables and indexes
   db.run(`
         CREATE TABLE IF NOT EXISTS tasks(

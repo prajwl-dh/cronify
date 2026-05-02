@@ -2,8 +2,12 @@ import { initConfig } from './backend/api/config';
 import { startServer } from './backend/api/server';
 import { initDatabase } from './backend/db/schema';
 import { startScheduler } from './backend/engine/scheduler';
+import { logger } from './backend/utils/logger';
 
 function main() {
+  console.log('💻 Application Started ...');
+  logger.info('💻 Application Started ...');
+
   // Load configuration
   const config = initConfig();
 
