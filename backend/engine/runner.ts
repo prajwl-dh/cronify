@@ -1,4 +1,3 @@
-import { stripANSI } from 'bun';
 import { Database } from 'bun:sqlite';
 import type { Task } from '../db/schema';
 import { logger } from '../utils/logger';
@@ -55,21 +54,18 @@ export async function executeTask(db: Database, task: Task) {
         exitCode,
       );
 
-      const cleanStdout = stripANSI(stdoutText).trim();
-      const cleanStderr = stripANSI(stderrText).trim();
-
       if (exitCode === 0) {
         logger.info(
           `✅ Task ${task.id} finished successfully (exit code ${exitCode})\n` +
-            (cleanStdout
-              ? `--- STDOUT ---\n${cleanStdout}`
+            (stdoutText
+              ? `--- STDOUT ---\n${stdoutText}`
               : '--- STDOUT ---\n<empty>'),
         );
       } else {
         logger.error(
           `❌ Task ${task.id} failed (exit code ${exitCode})\n` +
-            (cleanStdout ? `--- STDOUT ---\n${cleanStdout}\n` : '') +
-            (cleanStderr ? `--- STDERR ---\n${cleanStderr}` : '<no stderr>'),
+            (stdoutText ? `--- STDOUT ---\n${stdoutText}\n` : '') +
+            (stderrText ? `--- STDERR ---\n${stderrText}` : '<no stderr>'),
         );
       }
     } catch (dbError) {
