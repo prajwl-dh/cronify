@@ -1,3 +1,4 @@
+import { stripANSI } from 'bun';
 import { Database } from 'bun:sqlite';
 import type { Task } from '../db/schema';
 import { logger } from '../utils/logger';
@@ -55,7 +56,7 @@ export async function executeTask(db: Database, task: Task) {
       );
 
       logger.info(
-        `✅ Task ${task.id} finished with exit code ${exitCode}. Output: ${stdoutText}`,
+        `✅ Task ${task.id} finished with exit code ${exitCode}.\nOutput:\n${stripANSI(stdoutText)}`,
       );
     } catch (dbError) {
       logger.error(
