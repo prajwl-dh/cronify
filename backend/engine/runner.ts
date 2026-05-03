@@ -1,9 +1,10 @@
 import { Database } from 'bun:sqlite';
 import type { Task } from '../db/schema';
+import { logger } from '../utils/logger';
 
 export async function executeTask(db: Database, task: Task) {
   const executedAt = Date.now();
-  console.log(`Executing task ${task.id}: ${task.command}`);
+  logger.info(`Executing task ${task.id}: ${task.command}`);
 
   // Check platform and shell
   const isWindows = process.platform === 'win32';
@@ -53,11 +54,13 @@ export async function executeTask(db: Database, task: Task) {
         exitCode,
       );
 
-      console.log(
-        `✅ Task ${task.id} finished with exit code ${exitCode} \n\n${stdoutText}`,
+      logger.info(
+        `✅ Task ${task.id} finished with exit code ${exitCode}. Output: ${stdoutText}`,
       );
     } catch (dbError) {
-      console.error(`❌ Failed to save log for task ${task.id}`, dbError);
+      logger.error(
+        `❌ Failed to save log for task ${task.id}. Error: ${dbError}`,
+      );
     }
   }
 }

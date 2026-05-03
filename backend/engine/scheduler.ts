@@ -1,10 +1,11 @@
 import { Database } from 'bun:sqlite';
 import { CronExpressionParser } from 'cron-parser';
 import type { Task } from '../db/schema';
+import { logger } from '../utils/logger';
 import { executeTask } from './runner';
 
 export function startScheduler(db: Database) {
-  console.log('🕒 Cronify Scheduler started ...');
+  logger.info('🕒 Cronify Scheduler started ...');
 
   setInterval(() => {
     const now = Date.now();
@@ -49,8 +50,6 @@ export function startScheduler(db: Database) {
               WHERE id = ?
             `,
             ).run(Date.now(), task.id);
-
-            console.log(`🏁 Task ${task.id} marked as obsolete.`);
           } else {
             // Runs on interval based on cron string
             db.query(
@@ -65,9 +64,8 @@ export function startScheduler(db: Database) {
           // Fire off the execution engine
           executeTask(db, task);
         } catch (error) {
-          console.error(
-            `[Scheduler Error] Task ${task.id} failed to process.`,
-            error,
+          logger.error(
+            `[Scheduler Error] Task ${task.id} failed to process. Error message : ${error}`,
           );
         }
       }

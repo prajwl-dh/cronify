@@ -1,5 +1,6 @@
 import { Database } from 'bun:sqlite';
 import CronExpressionParser from 'cron-parser';
+import { logger } from '../utils/logger';
 
 export function startServer(db: Database, port: number) {
   Bun.serve({
@@ -73,7 +74,7 @@ export function startServer(db: Database, port: number) {
             headers: { 'Content-Type': 'application/json' },
           });
         } catch (error) {
-          console.error('API Error:', error);
+          logger.error('API Error: ' + error);
           return new Response('Internal Server Error', { status: 500 });
         }
       }
@@ -115,5 +116,5 @@ export function startServer(db: Database, port: number) {
     },
   });
 
-  console.log(`🌐 Cronify API listening on http://localhost:${port}\n`);
+  logger.info(`🌐 Cronify API listening on http://localhost:${port}\n`);
 }

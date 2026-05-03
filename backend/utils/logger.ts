@@ -14,9 +14,22 @@ function getLogFile() {
   return path.join(logDir, `${date}.log`);
 }
 
-const transport = pino.destination({
-  dest: getLogFile(),
-  sync: false,
+const transport = pino.transport({
+  targets: [
+    {
+      target: 'pino/file',
+      options: {
+        destination: getLogFile(),
+      },
+    },
+    {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+      },
+      level: 'info',
+    },
+  ],
 });
 
 export const logger = pino(

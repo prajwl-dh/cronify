@@ -32,7 +32,6 @@ export function initDatabase(): Database {
   const dbPath = join(dir, 'cronify.sqlite');
   const db = new Database(dbPath);
 
-  console.log('💾 Initializing Database ...');
   logger.info('💾 Initializing Database ...');
   // Create necessary tables and indexes
   db.run(`

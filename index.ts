@@ -5,7 +5,7 @@ import { startScheduler } from './backend/engine/scheduler';
 import { logger } from './backend/utils/logger';
 
 function main() {
-  console.log('💻 Application Started ...');
+  logger.info('');
   logger.info('💻 Application Started ...');
 
   // Load configuration
