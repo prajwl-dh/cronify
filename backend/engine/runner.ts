@@ -55,9 +55,23 @@ export async function executeTask(db: Database, task: Task) {
         exitCode,
       );
 
-      logger.info(
-        `✅ Task ${task.id} finished with exit code ${exitCode}.\nOutput:\n${stripANSI(stdoutText)}`,
-      );
+      const cleanStdout = stripANSI(stdoutText).trim();
+      const cleanStderr = stripANSI(stderrText).trim();
+
+      if (exitCode === 0) {
+        logger.info(
+          `✅ Task ${task.id} finished successfully (exit code ${exitCode})\n` +
+            (cleanStdout
+              ? `--- STDOUT ---\n${cleanStdout}`
+              : '--- STDOUT ---\n<empty>'),
+        );
+      } else {
+        logger.error(
+          `❌ Task ${task.id} failed (exit code ${exitCode})\n` +
+            (cleanStdout ? `--- STDOUT ---\n${cleanStdout}\n` : '') +
+            (cleanStderr ? `--- STDERR ---\n${cleanStderr}` : '<no stderr>'),
+        );
+      }
     } catch (dbError) {
       logger.error(
         `❌ Failed to save log for task ${task.id}. Error: ${dbError}`,
