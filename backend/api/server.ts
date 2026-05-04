@@ -10,6 +10,7 @@ export function startServer(db: Database, port: number) {
 
       // GET /api/tasks endpoint
       if (url.pathname === '/api/tasks' && req.method === 'GET') {
+        logger.info('GET /api/tasks endpoint called\n');
         const tasks = db.query('SELECT * FROM tasks').all();
         return new Response(JSON.stringify(tasks), {
           headers: { 'Content-Type': 'application/json' },
@@ -26,8 +27,15 @@ export function startServer(db: Database, port: number) {
           };
           const { command, schedule } = body;
 
+          logger.info(
+            `POST /api/tasks endpoint called. Request body: ${JSON.stringify(body)}`,
+          );
+
           // Body validation
           if (!command || !schedule) {
+            logger.error(
+              `POST /api/tasks endpoint. Missing command or schedule.\n`,
+            );
             return new Response('Missing command or schedule', { status: 400 });
           }
 
@@ -49,6 +57,9 @@ export function startServer(db: Database, port: number) {
               if (!isNaN(parsedDate)) {
                 nextRunMs = parsedDate;
               } else {
+                logger.error(
+                  `POST /api/tasks endpoint. Invalid cron string or date format : ${schedule}\n`,
+                );
                 return new Response('Invalid cron string or date format', {
                   status: 400,
                 });
@@ -69,30 +80,42 @@ export function startServer(db: Database, port: number) {
             id: number;
           };
 
+          logger.info(
+            `POST /api/tasks endpoint. Inserted into tasks table - id: ${row.id} , body: ${JSON.stringify(body)}\n`,
+          );
+
           return new Response(JSON.stringify({ success: true, id: row.id }), {
             status: 201,
             headers: { 'Content-Type': 'application/json' },
           });
         } catch (error) {
-          logger.error('API Error: ' + error);
+          logger.error('POST /api/tasks endpoint. Error: ' + error + '\n');
           return new Response('Internal Server Error', { status: 500 });
         }
       }
 
       // GET /api/logs endpoint
       if (url.pathname === '/api/logs' && req.method === 'GET') {
+        logger.info('GET /api/logs endpoint called\n');
         const logs = db.query('SELECT * FROM logs').all();
         return new Response(JSON.stringify(logs), {
           headers: { 'Content-Type': 'application/json' },
         });
       }
 
-      // DELETE /api/tasks/{id} endpoint
+      // DELETE /api/tasks/{:id} endpoint
       if (url.pathname.startsWith('/api/tasks/') && req.method === 'DELETE') {
-        const id = Number(url.pathname.split('/').pop());
+        const param = url.pathname.split('/').pop();
+        const id = Number(param);
+        logger.info(
+          `DELETE /api/tasks/{:id} endpoint called with id: ${param}`,
+        );
 
         if (isNaN(id)) {
-          return new Response('Invalid task ID', { status: 400 });
+          logger.error(
+            `DELETE /api/tasks/{:id} endpoint. Invalid task id: ${param}\n`,
+          );
+          return new Response('Invalid task id', { status: 400 });
         }
 
         const deleteQuery = db.query(`
@@ -102,11 +125,17 @@ export function startServer(db: Database, port: number) {
         const result = deleteQuery.run(id);
 
         if (result.changes === 0) {
+          logger.error(
+            `DELETE /api/tasks/{:id} endpoint. Task with id: ${id} does not exist\n`,
+          );
           return new Response(`Task with id ${id} does not exist`, {
             status: 404,
           });
         }
 
+        logger.info(
+          `DELETE /api/tasks/{:id} endpoint. Task with id: ${id} deleted successfully\n`,
+        );
         return new Response(JSON.stringify({ success: true, deletedId: id }), {
           headers: { 'Content-Type': 'application/json' },
         });

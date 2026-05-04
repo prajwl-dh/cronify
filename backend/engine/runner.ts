@@ -4,7 +4,6 @@ import { logger } from '../utils/logger';
 
 export async function executeTask(db: Database, task: Task) {
   const executedAt = Date.now();
-  logger.info(`Executing task ${task.id}: ${task.command}`);
 
   // Check platform and shell
   const isWindows = process.platform === 'win32';
@@ -54,6 +53,7 @@ export async function executeTask(db: Database, task: Task) {
         exitCode,
       );
 
+      logger.info(`Executing task ${task.id}: ${task.command}`);
       if (exitCode === 0) {
         logger.info(
           `✅ Task ${task.id} finished successfully (exit code ${exitCode})\n` +
