@@ -56,14 +56,14 @@ export async function executeTask(db: Database, task: Task) {
       logger.info(`Executing task ${task.id}: ${task.command}`);
       if (exitCode === 0) {
         logger.info(
-          `✅ Task ${task.id} finished successfully (exit code ${exitCode})\n` +
+          `✅ Task ${task.id}: ${task.command} , finished successfully (exit code ${exitCode})\n` +
             (stdoutText
               ? `--- STDOUT ---\n${stdoutText}`
               : '--- STDOUT ---\n<empty>'),
         );
       } else {
         logger.error(
-          `❌ Task ${task.id} failed (exit code ${exitCode})\n` +
+          `❌ Task ${task.id}: ${task.command} , failed (exit code ${exitCode})\n` +
             (stdoutText ? `--- STDOUT ---\n${stdoutText}\n` : '') +
             (stderrText ? `--- STDERR ---\n${stderrText}` : '<no stderr>'),
         );
