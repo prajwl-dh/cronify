@@ -1,5 +1,5 @@
-import { initConfig } from './backend/api/config';
 import { startServer } from './backend/api/server';
+import { initConfig } from './backend/config/config';
 import { initDatabase } from './backend/db/schema';
 import { startScheduler } from './backend/engine/scheduler';
 import { logger } from './backend/utils/logger';
