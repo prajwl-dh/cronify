@@ -12,7 +12,6 @@ const DEFAULT_CONFIG: CronifyConfig = {
 };
 
 export function initConfig(): CronifyConfig {
-  logger.info('⚙️  Loading configs ...');
   const dir = join(homedir(), '.cronify');
   const configPath = join(dir, 'config.json');
 
