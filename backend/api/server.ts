@@ -109,6 +109,20 @@ export function startServer(db: Database, port: number) {
           });
         }
 
+        // GET /api/logs/:task_id endpoint
+        if (url.pathname.startsWith('/api/logs') && req.method === 'GET') {
+          const param = url.pathname.split('/').pop();
+          const task_id = Number(param);
+
+          logger.info('GET /api/logs/:task_id endpoint called\n');
+          const logs = db
+            .query(`SELECT * FROM logs WHERE task_id = ?`)
+            .all(task_id);
+          return new Response(JSON.stringify(logs), {
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+
         // DELETE /api/tasks/{:id} endpoint
         if (url.pathname.startsWith('/api/tasks/') && req.method === 'DELETE') {
           const param = url.pathname.split('/').pop();

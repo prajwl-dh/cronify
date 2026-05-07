@@ -67,6 +67,7 @@ export async function runCli(args: string[]) {
         );
         process.exit(1);
       }
+
       const res = await fetch(`${API_URL}/api/tasks/${values.id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -97,6 +98,29 @@ export async function runCli(args: string[]) {
 
       if (logs.length === 0) {
         console.info('No logs available\n');
+      } else {
+        console.info(JSON.stringify(logs) + '\n');
+      }
+    } else if (command === 'log') {
+      // List log for specific task
+      if (!values.id) {
+        console.error(
+          '❌ Missing required flags.\nUsage: cronify log --id 1\n',
+        );
+        process.exit(1);
+      }
+
+      if (isNaN(Number(values.id))) {
+        console.error('❌ Id must be a number.\nUsage: cronify log --id 1\n');
+        process.exit(1);
+      }
+
+      const res = await fetch(`${API_URL}/api/logs/${values.id}`);
+
+      const logs = (await res.json()) as [];
+
+      if (logs.length === 0) {
+        console.info('No logs available for this task\n');
       } else {
         console.info(JSON.stringify(logs) + '\n');
       }
@@ -174,6 +198,7 @@ export async function runCli(args: string[]) {
         cronify delete --id <id>
         cronify list
         cronify logs
+        cronify log --id <task_id>
         cronify change --port <new-port-number>
         cronify daemon --start
         cronify daemon --stop
