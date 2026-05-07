@@ -4,11 +4,13 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "clean": "rimraf dist && rimraf out && rimraf ./cronify",
     "dev": "bun index.ts daemon --start",
     "dev-build": "bun build ./index.ts --compile --outfile cronify"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "rimraf": "^6.1.3"
   },
   "peerDependencies": {
     "typescript": "^5"
