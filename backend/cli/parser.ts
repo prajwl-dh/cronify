@@ -180,8 +180,12 @@ export async function runCli(args: string[]) {
         `);
     }
   } catch (error: any) {
-    console.error(
-      `❌ Could not connect to Cronify daemon at ${API_URL}. Is it running?\n`,
-    );
+    if (error?.cause?.code === 'ECONNREFUSED') {
+      console.error(
+        `❌ Could not connect to Cronify daemon at ${API_URL}. Is it running?\n`,
+      );
+    } else {
+      console.error(`❌ Error: ${error.message}\n`);
+    }
   }
 }
