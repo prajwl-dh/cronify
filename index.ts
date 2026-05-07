@@ -9,8 +9,8 @@ async function main() {
   // Get all arguments passed
   const args = Bun.argv.slice(2);
 
-  // If the args request for daemon, boot the background service daemon
-  if (args[0] === 'daemon') {
+  // If the args request to start the daemon, boot the background service
+  if (args[0] === 'daemon' && args.includes('--start')) {
     logger.info('💻 Daemon Started ...');
 
     // Load configuration
@@ -23,7 +23,7 @@ async function main() {
     startScheduler(db);
     startServer(db, config.port);
   } else {
-    // Treat args as cli commands
+    // Else treat all other args as cli commands
     await runCli(args);
   }
 }

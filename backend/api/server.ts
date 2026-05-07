@@ -1,10 +1,13 @@
 import { Database } from 'bun:sqlite';
 import CronExpressionParser from 'cron-parser';
+import { initConfig } from '../config/config';
 import { logger } from '../utils/logger';
+
+let activeServer: any = null;
 
 export function startServer(db: Database, port: number) {
   try {
-    Bun.serve({
+    activeServer = Bun.serve({
       port: port,
       async fetch(req) {
         const url = new URL(req.url);
@@ -147,6 +150,42 @@ export function startServer(db: Database, port: number) {
           );
         }
 
+        // POST /api/shutdown endpoint
+        if (url.pathname === '/api/shutdown' && req.method === 'POST') {
+          logger.warn('🛑 Received shutdown command from CLI. Exiting...');
+
+          setTimeout(() => process.exit(0), 500);
+
+          return new Response(
+            JSON.stringify({ message: 'Daemon shut down gracefully' }),
+            {
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
+        }
+
+        // POST /api/reload endpoint
+        if (url.pathname === '/api/reload' && req.method === 'POST') {
+          logger.info(
+            '🔄 Received reload command. Rebooting API on new port...',
+          );
+
+          // Using setTimeout so the server can send the 200 OK response to the CLI BEFORE it kills its own connection
+          setTimeout(() => {
+            if (activeServer) activeServer.stop(true);
+
+            const newConfig = initConfig();
+            startServer(db, newConfig.port);
+          }, 500);
+
+          return new Response(
+            JSON.stringify({ message: 'Daemon reloading configuration...' }),
+            {
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
+        }
+
         return new Response('Not Found', { status: 404 });
       },
     });
@@ -165,5 +204,5 @@ export function startServer(db: Database, port: number) {
     }
   }
 
-  logger.info(`🌐 Cronify API listening on http://localhost:${port}\n`);
+  logger.info(`🌐 Cronify API now listening on http://localhost:${port}\n`);
 }

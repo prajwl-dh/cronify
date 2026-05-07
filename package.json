@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun index.ts daemon"
+    "dev": "bun index.ts daemon --start",
+    "dev-build": "bun build ./index.ts --compile --outfile cronify"
   },
   "devDependencies": {
     "@types/bun": "latest"
