@@ -63,12 +63,50 @@ export function installDaemon() {
       });
       logger.info('✅ Linux systemd service installed and started.');
     } else if (os === 'win32') {
-      const command = `schtasks /create /tn "CronifyDaemon" /tr "\\"${execPath}\\" daemon --internal" /sc onlogon /f`;
-      spawnSync('cmd.exe', ['/c', command], { stdio: 'inherit' });
-      logger.info('✅ Windows Scheduled Task installed.');
-      spawnSync('schtasks', ['/run', '/tn', 'CronifyDaemon'], {
-        stdio: 'ignore',
+      // 1. Ensure the target directory exists
+      const cronifyDir = join(home, '.cronify');
+      if (!existsSync(cronifyDir)) mkdirSync(cronifyDir, { recursive: true });
+
+      // 2. Create a VBS script to run the daemon entirely in the background (0 = hidden)
+      const vbsPath = join(cronifyDir, 'run_daemon.vbs');
+      const vbsContent = `Set WshShell = CreateObject("WScript.Shell")\nWshShell.Run """${execPath}"" daemon --internal", 0, False`;
+      writeFileSync(vbsPath, vbsContent, 'utf-8');
+
+      // 3. Call schtasks directly using an array (fixes the quote-stripping error)
+      const schtasksArgs = [
+        '/create',
+        '/tn',
+        'CronifyDaemon',
+        '/tr',
+        `wscript.exe "${vbsPath}"`,
+        '/sc',
+        'onlogon',
+        '/rl',
+        'highest', // Grants Admin privileges automatically
+        '/f',
+      ];
+
+      const result = spawnSync('schtasks', schtasksArgs, {
+        stdio: 'pipe',
+        encoding: 'utf-8',
       });
+
+      if (result.status === 0) {
+        logger.info('✅ Windows Scheduled Task installed.');
+        spawnSync('schtasks', ['/run', '/tn', 'CronifyDaemon'], {
+          stdio: 'ignore',
+        });
+      } else {
+        const stderr = result.stderr || '';
+        if (stderr.includes('Access is denied')) {
+          logger.error(
+            '❌ Access is denied. Please open your terminal as an Administrator and try again.',
+          );
+          process.exit(1);
+        } else {
+          throw new Error(`schtasks failed: ${stderr}`);
+        }
+      }
     } else {
       logger.error(`❌ Unsupported OS: ${os}`);
       process.exit(1);

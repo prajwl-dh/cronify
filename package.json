@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "clean": "bun -e \"if (process.platform === 'win32') { require('child_process').execSync('rimraf dist out') } else { require('child_process').execSync('rimraf dist out .bun-build*') }\"",
+    "clean": "rimraf dist && rimraf out && rimraf .*.bun-build",
     "dev-build": "bun build ./index.ts --compile --outfile ./dist/cronify"
   },
   "devDependencies": {

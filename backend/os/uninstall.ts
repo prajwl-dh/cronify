@@ -2,12 +2,16 @@ import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, rmSync, unlinkSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { initConfig } from '../config/config';
 import { logger } from '../utils/logger';
 
 export async function uninstallDaemon() {
+  const config = initConfig();
   const os = process.platform;
   const execPath = process.execPath;
+
   const cronifyDir = join(homedir(), '.cronify');
+  const vbsPath = join(cronifyDir, 'run_daemon.vbs');
 
   logger.info(`Removing Cronify system hooks for OS: ${os}`);
 
@@ -36,9 +40,28 @@ export async function uninstallDaemon() {
       spawnSync('systemctl', ['--user', 'daemon-reload']);
     }
   } else if (os === 'win32') {
+    logger.info('🛑 Stopping daemon before uninstall...');
+
+    try {
+      // graceful shutdown FIRST
+      await fetch(`http://127.0.0.1:${config.port}/api/shutdown`, {
+        method: 'POST',
+      });
+
+      await new Promise((r) => setTimeout(r, 2000));
+    } catch {}
+
     spawnSync('schtasks', ['/delete', '/tn', 'CronifyDaemon', '/f'], {
       stdio: 'ignore',
     });
+
+    spawnSync('taskkill', ['/F', '/IM', 'bun.exe'], { stdio: 'ignore' });
+    spawnSync('taskkill', ['/F', '/IM', 'node.exe'], { stdio: 'ignore' });
+    spawnSync('taskkill', ['/F', '/IM', 'wscript.exe'], { stdio: 'ignore' });
+
+    if (existsSync(vbsPath)) {
+      unlinkSync(vbsPath);
+    }
   }
 
   logger.info('🗑️ Deleting database, logs, and configurations...');
@@ -49,8 +72,9 @@ export async function uninstallDaemon() {
   console.info('🧨 Self-destructing binary file...');
 
   if (os === 'win32') {
-    // Detached process trick to delete the running .exe file on Windows
+    // delay delete for running exe
     const command = `timeout /t 2 /nobreak > NUL & del "${execPath}"`;
+
     const child = spawn('cmd.exe', ['/c', command], {
       detached: true,
       stdio: 'ignore',

@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { initConfig } from '../config/config';
 import { logger } from '../utils/logger';
 
 export function startDaemonService() {
@@ -14,10 +15,16 @@ export function startDaemonService() {
       spawnSync('systemctl', ['--user', 'start', 'cronify.service'], {
         stdio: 'inherit',
       });
-    } else if (os === 'win32') {
-      spawnSync('schtasks', ['/run', '/tn', 'CronifyDaemon'], {
-        stdio: 'inherit',
+    }
+    if (os === 'win32') {
+      const result = spawnSync('schtasks', ['/run', '/tn', 'CronifyDaemon'], {
+        stdio: 'pipe',
+        encoding: 'utf-8',
       });
+
+      if (result.status !== 0) {
+        throw new Error(result.stderr || 'Failed to start task');
+      }
     }
     logger.info('✅ OS Service started.');
   } catch (error) {
@@ -25,8 +32,9 @@ export function startDaemonService() {
   }
 }
 
-export function stopDaemonService() {
+export async function stopDaemonService() {
   const os = process.platform;
+  const config = initConfig();
   logger.info('🛑 Telling the Operating System to stop Cronify...');
 
   try {
@@ -38,10 +46,19 @@ export function stopDaemonService() {
       spawnSync('systemctl', ['--user', 'stop', 'cronify.service'], {
         stdio: 'inherit',
       });
-    } else if (os === 'win32') {
-      spawnSync('schtasks', ['/end', '/tn', 'CronifyDaemon'], {
-        stdio: 'ignore',
-      });
+    }
+    if (os === 'win32') {
+      try {
+        await fetch(`http://127.0.0.1:${config.port}/api/shutdown`, {
+          method: 'POST',
+        });
+
+        await new Promise((r) => setTimeout(r, 1500));
+      } catch (e) {
+        logger.warn('Daemon may already be stopped');
+      }
+
+      logger.info('✅ Shutdown request sent');
     }
     logger.info('✅ OS Service stopped gracefully.');
   } catch (error) {

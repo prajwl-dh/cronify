@@ -1,6 +1,5 @@
 import { Database } from 'bun:sqlite';
 import { CronExpressionParser } from 'cron-parser';
-import { initConfig } from '../config/config';
 import { logger } from '../utils/logger';
 
 let activeServer: any = null;
@@ -173,28 +172,6 @@ export function startServer(db: Database, port: number) {
 
           return new Response(
             JSON.stringify({ message: 'Daemon shut down gracefully' }),
-            {
-              headers: { 'Content-Type': 'application/json' },
-            },
-          );
-        }
-
-        // POST /api/reload endpoint
-        if (url.pathname === '/api/reload' && req.method === 'POST') {
-          logger.info(
-            '🔄 Received reload command. Rebooting API on new port...',
-          );
-
-          // Using setTimeout so the server can send the 200 OK response to the CLI BEFORE it kills its own connection
-          setTimeout(() => {
-            if (activeServer) activeServer.stop(true);
-
-            const newConfig = initConfig();
-            startServer(db, newConfig.port);
-          }, 500);
-
-          return new Response(
-            JSON.stringify({ message: 'Daemon reloading configuration...' }),
             {
               headers: { 'Content-Type': 'application/json' },
             },
