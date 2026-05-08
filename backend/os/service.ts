@@ -42,6 +42,16 @@ export async function stopDaemonService() {
       spawnSync('launchctl', ['stop', 'com.cronify.daemon'], {
         stdio: 'inherit',
       });
+
+      try {
+        await fetch(`http://127.0.0.1:${config.port}/api/shutdown`, {
+          method: 'POST',
+        });
+
+        await new Promise((r) => setTimeout(r, 1500));
+      } catch (e) {
+        logger.warn('Daemon may already be stopped');
+      }
     } else if (os === 'linux') {
       spawnSync('systemctl', ['--user', 'stop', 'cronify.service'], {
         stdio: 'inherit',
