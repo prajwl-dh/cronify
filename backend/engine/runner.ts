@@ -7,8 +7,10 @@ export async function executeTask(db: Database, task: Task) {
 
   // Check platform and shell
   const isWindows = process.platform === 'win32';
-  const shell = isWindows ? 'cmd.exe' : process.env.SHELL || 'bash';
-  const shellArgs = isWindows ? ['/c'] : ['-i', '-c'];
+
+  const shell = isWindows ? 'cmd.exe' : process.env.SHELL || '/bin/zsh';
+
+  const shellArgs = isWindows ? ['/c'] : ['-ilc'];
 
   let stdoutText = '';
   let stderrText = '';
@@ -19,7 +21,10 @@ export async function executeTask(db: Database, task: Task) {
     const proc = Bun.spawn([shell, ...shellArgs, task.command], {
       stdout: 'pipe',
       stderr: 'pipe',
-      env: process.env,
+      env: {
+        ...process.env,
+        TERM: 'xterm-256color',
+      },
     });
 
     if (proc.stdout) stdoutText = await new Response(proc.stdout).text();

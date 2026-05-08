@@ -4,9 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "clean": "rimraf dist && rimraf out && rimraf ./cronify",
-    "dev": "bun index.ts daemon --start",
-    "dev-build": "bun build ./index.ts --compile --outfile cronify"
+    "clean": "rimraf dist out .*.bun-build",
+    "dev-build": "bun build ./index.ts --compile --outfile ./dist/cronify"
   },
   "devDependencies": {
     "@types/bun": "latest",
