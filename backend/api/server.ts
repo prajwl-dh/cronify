@@ -1,5 +1,5 @@
 import { Database } from 'bun:sqlite';
-import CronExpressionParser from 'cron-parser';
+import { CronExpressionParser } from 'cron-parser';
 import { initConfig } from '../config/config';
 import { logger } from '../utils/logger';
 
@@ -54,6 +54,7 @@ export function startServer(db: Database, port: number) {
             } else {
               try {
                 // Check if the schedule is a cron string
+                logger.info('Schedule : ' + schedule);
                 const interval = CronExpressionParser.parse(schedule);
                 nextRunMs = interval.next().getTime();
                 isCron = true;

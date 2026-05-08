@@ -3,6 +3,9 @@ import { homedir } from 'os';
 import { join } from 'path';
 import { parseArgs } from 'util';
 import { initConfig } from '../config/config';
+import { installDaemon } from '../os/install';
+import { startDaemonService, stopDaemonService } from '../os/service';
+import { uninstallDaemon } from '../os/uninstall';
 import { logger } from '../utils/logger';
 
 export async function runCli(args: string[]) {
@@ -18,7 +21,7 @@ export async function runCli(args: string[]) {
       schedule: { type: 'string', short: 's' },
       id: { type: 'string', short: 'i' },
       port: { type: 'string', short: 'p' },
-      stop: { type: 'boolean' },
+      confirm: { type: 'boolean' },
     },
     allowPositionals: true,
     strict: false,
@@ -124,42 +127,30 @@ export async function runCli(args: string[]) {
       } else {
         console.info(JSON.stringify(logs) + '\n');
       }
-    } else if (command === 'daemon') {
-      // Handle the stop command ping
-      if (values.stop) {
-        try {
-          const res = await fetch(`${API_URL}/api/shutdown`, {
-            method: 'POST',
-          });
-          if (res.ok) {
-            console.info('🛑 Cronify daemon has been shut down gracefully\n');
-          }
-        } catch (err: any) {
-          if (err?.cause?.code === 'ECONNREFUSED') {
-            console.warn('Daemon is not currently running.');
-          } else {
-            throw err;
-          }
-        }
+    } else if (command === 'install') {
+      installDaemon();
+    } else if (command === 'uninstall') {
+      console.log(
+        '⚠️ WARNING: This will completely delete Cronify, your scheduled tasks, and all logs.',
+      );
+      if (values.confirm) {
+        stopDaemonService(); // Ensure it stops before we delete files
+        await uninstallDaemon();
       } else {
-        console.info(
-          'Usage: cronify daemon --start OR cronify daemon --stop\n',
-        );
+        console.log('To confirm, run: cronify uninstall --confirm');
       }
+    } else if (command === 'start') {
+      startDaemonService();
+    } else if (command === 'stop') {
+      stopDaemonService();
     } else if (command === 'change') {
-      // Handle config changes
       if (values.port) {
         const newPort = Number(values.port);
         if (isNaN(newPort) || newPort < 1 || newPort > 65535) {
-          console.error(
-            '❌ Invalid port number. Must be between 1 and 65535\n',
-          );
+          console.error('❌ Invalid port number. Must be between 1 and 65535.');
           process.exit(1);
         }
 
-        const oldPort = config.port;
-
-        // Update the config file
         const configPath = join(homedir(), '.cronify', 'config.json');
         const updatedConfig = { ...config, port: newPort };
         writeFileSync(
@@ -167,27 +158,15 @@ export async function runCli(args: string[]) {
           JSON.stringify(updatedConfig, null, 2),
           'utf-8',
         );
-        logger.info(`✅ Config updated! Port changed to ${newPort}`);
 
-        // Tell the running daemon to hot-swap to the new port
-        try {
-          const res = await fetch(`http://localhost:${oldPort}/api/reload`, {
-            method: 'POST',
-          });
-          if (res.ok) {
-            console.info(
-              `🔄 Sent reload signal. Daemon now running on http://localhost:${newPort}\n`,
-            );
-          }
-        } catch (err: any) {
-          // If fetch fails, the daemon isn't running. No big deal, it will use the new port next time it boots.
-          console.info(
-            `ℹ️ Daemon is not currently running. It will use port ${newPort} next time it starts\n`,
-          );
-        }
+        logger.info(`✅ Config updated! Port changed to ${newPort}.`);
+        console.info(`🔄 Bouncing the OS service to apply changes...`);
+
+        stopDaemonService();
+        startDaemonService();
       } else {
         console.error(
-          '❌ Missing required flags.\nUsage: cronify change --port 3000\n',
+          '❌ Missing required flags.\nUsage: cronify change --port 3000',
         );
       }
     } else {
@@ -200,8 +179,10 @@ export async function runCli(args: string[]) {
         cronify logs
         cronify log --id <task_id>
         cronify change --port <new-port-number>
-        cronify daemon --start
-        cronify daemon --stop
+        cronify install
+        cronify uninstall --confirm
+        cronify start
+        cronify stop
         `);
     }
   } catch (error: any) {

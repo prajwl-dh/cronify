@@ -9,9 +9,9 @@ async function main() {
   // Get all arguments passed
   const args = Bun.argv.slice(2);
 
-  // If the args request to start the daemon, boot the background service
-  if (args[0] === 'daemon' && args.includes('--start')) {
-    logger.info('💻 Daemon Started ...');
+  // Hidden worker command used by the os
+  if (args[0] === 'daemon' && args.includes('--internal')) {
+    logger.info('💻 Internal Daemon Worker Started ...');
 
     // Load configuration
     const config = initConfig();
