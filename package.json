@@ -8,6 +8,7 @@
     "dev-build": "bun clean && bun build ./index.ts --compile --outfile ./dist/cronify"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
     "@types/bun": "latest",
     "rimraf": "^6.1.3"
   },
