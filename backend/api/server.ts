@@ -1,4 +1,5 @@
 import { Database } from 'bun:sqlite';
+import indexHtml from '../../ui/index.html' with { type: 'text' };
 import { logger } from '../utils/logger';
 import { shutdownDaemon } from './handler/common/shutdownDaemon';
 import { getLog } from './handler/logs/getLog';
@@ -22,6 +23,15 @@ export function startServer(db: Database, port: number) {
         const url = new URL(req.url);
 
         // Route incoming requests to their corresponding handlers
+
+        // Serve UI at root
+        if (url.pathname === '/' || url.pathname === '/index.html') {
+          return new Response(indexHtml.toString(), {
+            headers: {
+              'Content-Type': 'text/html',
+            },
+          });
+        }
 
         // GET /api/tasks
         if (url.pathname === '/api/tasks' && req.method === 'GET') {

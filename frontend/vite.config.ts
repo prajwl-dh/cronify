@@ -8,6 +8,8 @@ export default defineConfig({
   build: {
     cssCodeSplit: false,
     assetsInlineLimit: 100000000,
+    outDir: '../ui',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         inlineDynamicImports: true,
