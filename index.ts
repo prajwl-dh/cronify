@@ -1,31 +1,39 @@
 import { startServer } from './backend/api/server';
-import { runCli } from './backend/cli/parser';
+import { runCli } from './backend/cli/runCli';
 import { initConfig } from './backend/config/config';
 import { initDatabase } from './backend/db/schema';
 import { startScheduler } from './backend/engine/scheduler';
 import { logger } from './backend/utils/logger';
 
+/**
+ * Application entry point
+ * Decides whether to run in daemon mode (server + scheduler)
+ * or CLI mode based on provided arguments.
+ */
 async function main() {
-  // Get all arguments passed
+  // Extract CLI arguments (excluding Bun runtime args)
   const args = Bun.argv.slice(2);
 
-  // Hidden worker command used by the os
+  // Internal daemon mode (used by system/service runner)
   if (args[0] === 'daemon' && args.includes('--internal')) {
-    logger.info('💻 Internal Daemon Worker Started ...');
+    logger.info('Internal daemon worker started');
 
-    // Load configuration
+    // Load application configuration (port, env, etc.)
     const config = initConfig();
 
-    // Initialize database
+    // Initialize database connection and schema
     const db = initDatabase();
 
-    // Start the daemon services
+    // Start background job scheduler
     startScheduler(db);
+
+    // Start HTTP API server
     startServer(db, config.port);
   } else {
-    // Else treat all other args as cli commands
+    // Default mode: execute CLI commands
     await runCli(args);
   }
 }
 
+// Boot application
 main();
