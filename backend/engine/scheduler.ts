@@ -1,16 +1,22 @@
 import { Database } from 'bun:sqlite';
 import { CronExpressionParser } from 'cron-parser';
-import type { Task } from '../db/schema';
+import type { Task } from '../../shared/types/taskType';
 import { logger } from '../utils/logger';
 import { executeTask } from './runner';
 
+/**
+ * Starts the Cronify scheduler loop.
+ *
+ * Continuously checks for due tasks,
+ * updates their status, and triggers execution.
+ */
 export function startScheduler(db: Database) {
   logger.info('🕒 Cronify Scheduler started ...');
 
   setInterval(() => {
     const now = Date.now();
 
-    // Fetch all inactive tasks where the next_run timestamp is in the past or exactly now
+    // Fetch tasks that are ready to run
     const getDueTasks = db.query(`
         SELECT * FROM tasks
         WHERE status = 'inactive' AND next_run <= ?
@@ -20,29 +26,28 @@ export function startScheduler(db: Database) {
 
     if (dueTasks.length === 0) return;
 
-    // Process tasks inside a transaction
+    // Process all due tasks inside a single transaction
     const processDueTasks = db.transaction((tasks: Task[]) => {
       for (const task of tasks) {
         try {
           let isCron = false;
           let nextRunMs = 0;
 
-          // Ask the Cron library to validate the string first
+          // Validate and parse the cron expression
           if (task.cron_string !== '@once') {
             try {
-              // If this succeeds, it is a valid repeating cron string
               const interval = CronExpressionParser.parse(task.cron_string);
+
               nextRunMs = interval.next().getTime();
               isCron = true;
             } catch (cronError) {
-              // It threw an error, so it MUST be a Date timestamp or an invalid string
               isCron = false;
             }
           }
 
-          // Route the task based on the cron validation
+          // Update task state based on execution type
           if (!isCron) {
-            // Runs only once now or at a specified timestamp
+            // One-time task
             db.query(
               `
               UPDATE tasks 
@@ -51,7 +56,7 @@ export function startScheduler(db: Database) {
             `,
             ).run(Date.now(), task.id);
           } else {
-            // Runs on interval based on cron string
+            // Repeating cron task
             db.query(
               `
               UPDATE tasks
@@ -61,7 +66,7 @@ export function startScheduler(db: Database) {
             ).run(nextRunMs, Date.now(), task.id);
           }
 
-          // Fire off the execution engine
+          // Execute the task asynchronously
           executeTask(db, task);
         } catch (error) {
           logger.error(
@@ -72,5 +77,5 @@ export function startScheduler(db: Database) {
     });
 
     processDueTasks(dueTasks);
-  }, 10000);
+  }, 5000);
 }

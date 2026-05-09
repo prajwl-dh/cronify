@@ -1,11 +1,15 @@
 import { Database } from 'bun:sqlite';
-import type { Task } from '../db/schema';
+import type { Task } from '../../shared/types/taskType';
 import { logger } from '../utils/logger';
 
+/**
+ * Executes a scheduled task command and stores
+ * the execution result inside the logs table.
+ */
 export async function executeTask(db: Database, task: Task) {
   const executedAt = Date.now();
 
-  // Check platform and shell
+  // Detect the correct shell based on the operating system
   const isWindows = process.platform === 'win32';
 
   const shell = isWindows ? 'cmd.exe' : process.env.SHELL || '/bin/zsh';
@@ -17,7 +21,7 @@ export async function executeTask(db: Database, task: Task) {
   let exitCode: number | null = null;
 
   try {
-    // Run the command
+    // Spawn the task command using the system shell
     const proc = Bun.spawn([shell, ...shellArgs, task.command], {
       stdout: 'pipe',
       stderr: 'pipe',
@@ -35,7 +39,7 @@ export async function executeTask(db: Database, task: Task) {
     stderrText = error.message || 'Unknown spawn error';
     exitCode = -1;
   } finally {
-    // Mark the task as inactive so that it can re-run again
+    // Reset task status so it becomes schedulable again
     db.query(
       `
               UPDATE tasks
@@ -43,7 +47,7 @@ export async function executeTask(db: Database, task: Task) {
               WHERE id = ? AND status = 'active'`,
     ).run(task.id);
 
-    // Log the result into logs table
+    // Store execution output and metadata into logs table
     try {
       db.query(
         `
@@ -59,6 +63,7 @@ export async function executeTask(db: Database, task: Task) {
       );
 
       logger.info(`Executing task ${task.id}: ${task.command}`);
+
       if (exitCode === 0) {
         logger.info(
           `✅ Task ${task.id}: ${task.command} , finished successfully (exit code ${exitCode})\n` +

@@ -5,10 +5,15 @@ import path from 'path';
 
 const logDir = path.join(homedir(), '.cronify', 'logs');
 
+// Create the logs directory on first run
 if (!existsSync(logDir)) {
   mkdirSync(logDir, { recursive: true });
 }
 
+/**
+ * Returns the current daily log file path.
+ * Example: ~/.cronify/logs/2026-05-08.log
+ */
 function getLogFile() {
   const date = new Date().toISOString().split('T')[0];
   return path.join(logDir, `${date}.log`);
@@ -25,7 +30,7 @@ const levelPriority: Record<LogLevel, number> = {
 
 const CURRENT_LEVEL: LogLevel = 'info';
 
-// ANSI colors for console
+// ANSI colors used for terminal output
 const colors: Record<LogLevel, string> = {
   debug: '\x1b[90m',
   info: '\x1b[32m',
@@ -35,11 +40,17 @@ const colors: Record<LogLevel, string> = {
 
 const reset = '\x1b[0m';
 
+/**
+ * Formats log messages with timestamp and level.
+ */
 function formatMessage(level: LogLevel, message: string) {
   const timestamp = new Date().toISOString();
   return `[${timestamp}] [${level.toUpperCase()}] ${message}`;
 }
 
+/**
+ * Appends log messages into the daily log file.
+ */
 function writeToFile(message: string) {
   try {
     appendFileSync(getLogFile(), message + '\n');
@@ -48,6 +59,9 @@ function writeToFile(message: string) {
   }
 }
 
+/**
+ * Handles console logging and file persistence.
+ */
 function log(level: LogLevel, message: string, ...args: any[]) {
   if (levelPriority[level] < levelPriority[CURRENT_LEVEL]) return;
 
@@ -58,10 +72,10 @@ function log(level: LogLevel, message: string, ...args: any[]) {
 
   const formatted = formatMessage(level, fullMessage);
 
-  // Console output (colored)
+  // Colored terminal output
   console.log(`${colors[level]}${formatted}${reset}`);
 
-  // File output (no color)
+  // Plain text file output
   writeToFile(stripANSI(JSON.stringify(formatted)));
 }
 

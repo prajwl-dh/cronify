@@ -4,6 +4,10 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { logger } from '../utils/logger';
 
+/**
+ * Installs the Cronify background daemon
+ * based on the current operating system.
+ */
 export function installDaemon() {
   const os = process.platform;
   const execPath = process.execPath;
@@ -12,9 +16,14 @@ export function installDaemon() {
   logger.info(`Installing Cronify daemon for OS: ${os}`);
 
   try {
+    // macOS launchd installation
     if (os === 'darwin') {
       const plistDir = join(home, 'Library', 'LaunchAgents');
-      if (!existsSync(plistDir)) mkdirSync(plistDir, { recursive: true });
+
+      if (!existsSync(plistDir)) {
+        mkdirSync(plistDir, { recursive: true });
+      }
+
       const plistPath = join(plistDir, 'com.cronify.daemon.plist');
 
       const plistContent = `<?xml version="1.0" encoding="UTF-8"?>
@@ -37,11 +46,23 @@ export function installDaemon() {
         </plist>`;
 
       writeFileSync(plistPath, plistContent, 'utf-8');
-      spawnSync('launchctl', ['load', plistPath], { stdio: 'inherit' });
+
+      // Load and start the launchd agent
+      spawnSync('launchctl', ['load', plistPath], {
+        stdio: 'inherit',
+      });
+
       logger.info('✅ macOS launchd agent installed and loaded.');
-    } else if (os === 'linux') {
+    }
+
+    // Linux systemd installation
+    else if (os === 'linux') {
       const systemdDir = join(home, '.config', 'systemd', 'user');
-      if (!existsSync(systemdDir)) mkdirSync(systemdDir, { recursive: true });
+
+      if (!existsSync(systemdDir)) {
+        mkdirSync(systemdDir, { recursive: true });
+      }
+
       const servicePath = join(systemdDir, 'cronify.service');
 
       const serviceContent = `[Unit]
@@ -57,22 +78,36 @@ export function installDaemon() {
         WantedBy=default.target`;
 
       writeFileSync(servicePath, serviceContent, 'utf-8');
-      spawnSync('systemctl', ['--user', 'daemon-reload'], { stdio: 'inherit' });
+
+      // Reload systemd and enable the service
+      spawnSync('systemctl', ['--user', 'daemon-reload'], {
+        stdio: 'inherit',
+      });
+
       spawnSync('systemctl', ['--user', 'enable', '--now', 'cronify.service'], {
         stdio: 'inherit',
       });
-      logger.info('✅ Linux systemd service installed and started.');
-    } else if (os === 'win32') {
-      // 1. Ensure the target directory exists
-      const cronifyDir = join(home, '.cronify');
-      if (!existsSync(cronifyDir)) mkdirSync(cronifyDir, { recursive: true });
 
-      // 2. Create a VBS script to run the daemon entirely in the background (0 = hidden)
+      logger.info('✅ Linux systemd service installed and started.');
+    }
+
+    // Windows scheduled task installation
+    else if (os === 'win32') {
+      const cronifyDir = join(home, '.cronify');
+
+      // Create the Cronify directory if needed
+      if (!existsSync(cronifyDir)) {
+        mkdirSync(cronifyDir, { recursive: true });
+      }
+
+      // Create a hidden VBS launcher for background execution
       const vbsPath = join(cronifyDir, 'run_daemon.vbs');
+
       const vbsContent = `Set WshShell = CreateObject("WScript.Shell")\nWshShell.Run """${execPath}"" daemon --internal", 0, False`;
+
       writeFileSync(vbsPath, vbsContent, 'utf-8');
 
-      // 3. Call schtasks directly using an array (fixes the quote-stripping error)
+      // Register the daemon using Windows Task Scheduler
       const schtasksArgs = [
         '/create',
         '/tn',
@@ -82,7 +117,7 @@ export function installDaemon() {
         '/sc',
         'onlogon',
         '/rl',
-        'highest', // Grants Admin privileges automatically
+        'highest',
         '/f',
       ];
 
@@ -93,21 +128,28 @@ export function installDaemon() {
 
       if (result.status === 0) {
         logger.info('✅ Windows Scheduled Task installed.');
+
+        // Start the daemon immediately
         spawnSync('schtasks', ['/run', '/tn', 'CronifyDaemon'], {
           stdio: 'ignore',
         });
       } else {
         const stderr = result.stderr || '';
+
         if (stderr.includes('Access is denied')) {
           logger.error(
             '❌ Access is denied. Please open your terminal as an Administrator and try again.',
           );
+
           process.exit(1);
         } else {
           throw new Error(`schtasks failed: ${stderr}`);
         }
       }
-    } else {
+    }
+
+    // Unsupported operating systems
+    else {
       logger.error(`❌ Unsupported OS: ${os}`);
       process.exit(1);
     }

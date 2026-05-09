@@ -4,36 +4,26 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { logger } from '../utils/logger';
 
-export type Task = {
-  id: number;
-  command: string;
-  cron_string: string;
-  next_run: number;
-  status: 'active' | 'inactive' | 'obsolete';
-  created_at: number;
-  updated_at: number;
-};
-
-export type Log = {
-  id: number;
-  task_id: number;
-  executed_at: number;
-  stdout: string | null;
-  stderr: string | null;
-  exit_code: number | null;
-};
-
+/**
+ * Initializes the Cronify SQLite database.
+ *
+ * Creates the ~/.cronify directory if needed,
+ * then creates the database file, tables,
+ * and required indexes.
+ */
 export function initDatabase(): Database {
-  // Create .cronify directory at home directory
   const dir = join(homedir(), '.cronify');
+
+  // Create the config directory on first run
   mkdirSync(dir, { recursive: true });
 
-  // Create cronify.sqlite database inside the .cronify directory
+  // Create or open the SQLite database
   const dbPath = join(dir, 'cronify.sqlite');
   const db = new Database(dbPath);
 
   logger.info('💾 Initializing Database ...');
-  // Create necessary tables and indexes
+
+  // Create application tables and indexes
   db.run(`
         CREATE TABLE IF NOT EXISTS tasks(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
