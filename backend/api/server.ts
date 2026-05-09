@@ -1,195 +1,72 @@
 import { Database } from 'bun:sqlite';
-import { CronExpressionParser } from 'cron-parser';
 import { logger } from '../utils/logger';
+import { shutdownDaemon } from './handler/common/shutdownDaemon';
+import { getLog } from './handler/logs/getLog';
+import { getLogs } from './handler/logs/getLogs';
+import { addTask } from './handler/tasks/addTask';
+import { deleteTask } from './handler/tasks/deleteTask';
+import { getTasks } from './handler/tasks/getTasks';
 
 let activeServer: any = null;
 
+/**
+ * Starts the Cronify API server and registers
+ * all task, log, and daemon control endpoints.
+ */
 export function startServer(db: Database, port: number) {
   try {
     activeServer = Bun.serve({
       port: port,
+
       async fetch(req) {
         const url = new URL(req.url);
 
-        // GET /api/tasks endpoint
+        // Route incoming requests to their corresponding handlers
+
+        // GET /api/tasks
         if (url.pathname === '/api/tasks' && req.method === 'GET') {
-          logger.info('GET /api/tasks endpoint called\n');
-          const tasks = db.query('SELECT * FROM tasks').all();
-          return new Response(JSON.stringify(tasks), {
-            headers: { 'Content-Type': 'application/json' },
-          });
+          return await getTasks(db);
         }
 
-        // POST /api/tasks endpoint
+        // POST /api/tasks
         if (url.pathname === '/api/tasks' && req.method === 'POST') {
-          try {
-            // Parse incoming body
-            const body = (await req.json()) as {
-              command: string;
-              schedule: string;
-            };
-            const { command, schedule } = body;
-
-            logger.info(
-              `POST /api/tasks endpoint called. Request body: ${JSON.stringify(body)}`,
-            );
-
-            // Body validation
-            if (!command || !schedule) {
-              logger.error(
-                `POST /api/tasks endpoint. Missing command or schedule.\n`,
-              );
-              return new Response('Missing command or schedule', {
-                status: 400,
-              });
-            }
-
-            let nextRunMs: number;
-            let isCron = false;
-
-            // Check if the schedule only need to run once immediately
-            if (schedule === '@once') {
-              nextRunMs = Date.now();
-            } else {
-              try {
-                // Check if the schedule is a cron string
-                logger.info('Schedule : ' + schedule);
-                const interval = CronExpressionParser.parse(schedule);
-                nextRunMs = interval.next().getTime();
-                isCron = true;
-              } catch (err) {
-                // Check if the schedule is a specific date. If so, run the command only once on that date
-                const parsedDate = Date.parse(schedule);
-                if (!isNaN(parsedDate)) {
-                  nextRunMs = parsedDate;
-                } else {
-                  logger.error(
-                    `POST /api/tasks endpoint. Invalid cron string or date format : ${schedule}\n`,
-                  );
-                  return new Response('Invalid cron string or date format', {
-                    status: 400,
-                  });
-                }
-              }
-            }
-
-            // Finally insert everything into the tasks table
-            db.query(
-              `
-              INSERT INTO tasks (command, cron_string, next_run, status)
-              VALUES (?, ?, ?, 'inactive')
-            `,
-            ).run(command, schedule, nextRunMs);
-
-            // Get id for the inserted task
-            const row = db.query('SELECT last_insert_rowid() as id').get() as {
-              id: number;
-            };
-
-            logger.info(
-              `POST /api/tasks endpoint. Inserted into tasks table - id: ${row.id} , body: ${JSON.stringify(body)}\n`,
-            );
-
-            return new Response(JSON.stringify({ success: true, id: row.id }), {
-              status: 201,
-              headers: { 'Content-Type': 'application/json' },
-            });
-          } catch (error) {
-            logger.error('POST /api/tasks endpoint. Error: ' + error + '\n');
-            return new Response('Internal Server Error', { status: 500 });
-          }
+          return await addTask(req, db);
         }
 
-        // GET /api/logs endpoint
+        // GET /api/logs
         if (url.pathname === '/api/logs' && req.method === 'GET') {
-          logger.info('GET /api/logs endpoint called\n');
-          const logs = db.query('SELECT * FROM logs').all();
-          return new Response(JSON.stringify(logs), {
-            headers: { 'Content-Type': 'application/json' },
-          });
+          return await getLogs(db);
         }
 
-        // GET /api/logs/:task_id endpoint
+        // GET /api/logs/:task_id
         if (url.pathname.startsWith('/api/logs') && req.method === 'GET') {
-          const param = url.pathname.split('/').pop();
-          const task_id = Number(param);
-
-          logger.info('GET /api/logs/:task_id endpoint called\n');
-          const logs = db
-            .query(`SELECT * FROM logs WHERE task_id = ?`)
-            .all(task_id);
-          return new Response(JSON.stringify(logs), {
-            headers: { 'Content-Type': 'application/json' },
-          });
+          return await getLog(url, db);
         }
 
-        // DELETE /api/tasks/{:id} endpoint
+        // DELETE /api/tasks/:id
         if (url.pathname.startsWith('/api/tasks/') && req.method === 'DELETE') {
-          const param = url.pathname.split('/').pop();
-          const id = Number(param);
-          logger.info(
-            `DELETE /api/tasks/{:id} endpoint called with id: ${param}`,
-          );
-
-          if (isNaN(id)) {
-            logger.error(
-              `DELETE /api/tasks/{:id} endpoint. Invalid task id: ${param}\n`,
-            );
-            return new Response('Invalid task id', { status: 400 });
-          }
-
-          const deleteQuery = db.query(`
-            DELETE FROM tasks WHERE id = ?
-          `);
-
-          const result = deleteQuery.run(id);
-
-          if (result.changes === 0) {
-            logger.error(
-              `DELETE /api/tasks/{:id} endpoint. Task with id: ${id} does not exist\n`,
-            );
-            return new Response(`Task with id ${id} does not exist`, {
-              status: 404,
-            });
-          }
-
-          logger.info(
-            `DELETE /api/tasks/{:id} endpoint. Task with id: ${id} deleted successfully\n`,
-          );
-          return new Response(
-            JSON.stringify({ success: true, deletedId: id }),
-            {
-              headers: { 'Content-Type': 'application/json' },
-            },
-          );
+          return await deleteTask(url, db);
         }
 
-        // POST /api/shutdown endpoint
+        // POST /api/shutdown
         if (url.pathname === '/api/shutdown' && req.method === 'POST') {
-          logger.warn('🛑 Received shutdown command from CLI. Exiting...');
-
-          setTimeout(() => process.exit(0), 500);
-
-          return new Response(
-            JSON.stringify({ message: 'Daemon shut down gracefully' }),
-            {
-              headers: { 'Content-Type': 'application/json' },
-            },
-          );
+          return await shutdownDaemon();
         }
 
         return new Response('Not Found', { status: 404 });
       },
     });
   } catch (error: any) {
-    // Catch the port conflict if the daemon is already running
+    // Handle port conflicts when the daemon is already running
     if (error.code === 'EADDRINUSE') {
       console.error(
         `\n❌ ERROR: Cronify Daemon is already running on port ${port}.`,
       );
+
       console.error(
         `If you need to restart it, kill the existing process first.\n`,
       );
+
       process.exit(1);
     } else {
       throw error;
