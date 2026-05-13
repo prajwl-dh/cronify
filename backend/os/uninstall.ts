@@ -53,6 +53,19 @@ export async function uninstallDaemon() {
 
   // Windows scheduled task cleanup
   else if (os === 'win32') {
+    // First check if admin privilege is available
+    if (!isWindowsAdmin()) {
+      logger.error(
+        '❌ Administrator privileges are required to uninstall Cronify.',
+      );
+
+      logger.info(
+        'Please reopen your terminal as Administrator and try again.',
+      );
+
+      process.exit(1);
+    }
+
     logger.info('🛑 Stopping daemon before uninstall...');
 
     try {
@@ -67,6 +80,10 @@ export async function uninstallDaemon() {
     // Remove scheduled task
     spawnSync('schtasks', ['/delete', '/tn', 'CronifyDaemon', '/f'], {
       stdio: 'ignore',
+    });
+
+    spawnSync('schtasks', ['/delete', '/tn', 'CronifyDaemon', '/f'], {
+      encoding: 'utf-8',
     });
 
     // Kill any lingering processes
@@ -113,4 +130,16 @@ export async function uninstallDaemon() {
   );
 
   process.exit(0);
+}
+
+/**
+ * Checks admin privilege
+ */
+export function isWindowsAdmin(): boolean {
+  const result = spawnSync('net', ['session'], {
+    stdio: 'ignore',
+    shell: true,
+  });
+
+  return result.status === 0;
 }
