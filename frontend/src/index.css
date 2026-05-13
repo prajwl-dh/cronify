@@ -4,8 +4,8 @@
 :root {
   --background: #f8fafc;
   --foreground: #fefefe;
-  --primaryText: #182032;
-  --secondaryText: #64748b;
+  --primaryText: #333333;
+  --secondaryText: #94a3b8;
   --border: #e2e8f0;
   --borderActive: #6366f1;
   --bgActive: #eef2ff;
@@ -17,9 +17,22 @@
   --background: #020617;
   --foreground: #0f172a;
   --primaryText: #f1f5f9;
-  --secondaryText: #94a3b8;
+  --secondaryText: #8596ad;
   --border: #1e293b;
   --borderActive: #6366f1;
   --bgActive: #191e3d;
   --themeAccent: #6366f1;
+}
+
+@keyframes bounce-short {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15%);
+  }
+}
+.animate-bounce-short {
+  animation: bounce-short 0.5s ease-in-out 1;
 }
