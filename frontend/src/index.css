@@ -15,11 +15,11 @@
 /* DARK THEME */
 .dark {
   --background: #020617;
-  --foreground: #0c1327;
+  --foreground: #0f172a;
   --primaryText: #f1f5f9;
   --secondaryText: #94a3b8;
   --border: #1e293b;
   --borderActive: #6366f1;
-  --bgActive: #171f3f;
+  --bgActive: #191e3d;
   --themeAccent: #6366f1;
 }
