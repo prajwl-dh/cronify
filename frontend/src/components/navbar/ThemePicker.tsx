@@ -8,6 +8,7 @@ export default function ThemePicker() {
   return (
     <Menu>
       <MenuButton
+        title='Theme Selector'
         className={`outline-none text-(--primaryText) p-1 md:p-2 border border-(--border) rounded-xl bg-(--background) hover:bg-(--bgActive) cursor-pointer`}
       >
         {theme === 'light' && <Sun className='w-4 h-4' />}

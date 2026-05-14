@@ -1,7 +1,7 @@
 import { Dialog, DialogPanel } from '@headlessui/react';
 import { CalendarDays, Plus, Repeat, X, Zap } from 'lucide-react';
 import { useState } from 'react';
-import cronValidator from '../../utils/cronValidator';
+import cronValidator from '../../utils/validator';
 import Button from '../common/Button';
 
 export default function ActionButton() {
@@ -16,6 +16,7 @@ export default function ActionButton() {
   return (
     <>
       <Button
+        title='Add a new task'
         onClick={() => {
           setName('');
           setCommand('');
@@ -105,7 +106,7 @@ export default function ActionButton() {
                         }
                         setScheduleType(type.id);
                       }}
-                      className={`flex flex-col items-center justify-center p-3 rounded-xl border-[1.5px] transition-all cursor-pointer ${
+                      className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
                         scheduleType === type.id
                           ? 'bg-(--bgActive) border-(--borderActive) text-(--themeAccent) shadow-sm'
                           : 'bg-(--foreground) border-(--border) hover:bg-(--bgActive) hover:border-(--bgActive)'
