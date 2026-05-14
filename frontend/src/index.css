@@ -13,7 +13,7 @@
 }
 
 /* DARK THEME */
-.dark {
+html.dark {
   --background: #020617;
   --foreground: #0f172a;
   --primaryText: #f1f5f9;

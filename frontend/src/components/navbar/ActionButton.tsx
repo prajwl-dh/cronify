@@ -3,6 +3,7 @@ import { CalendarDays, Plus, Repeat, X, Zap } from 'lucide-react';
 import { useState } from 'react';
 import cronValidator from '../../utils/validator';
 import Button from '../common/Button';
+import Toast from '../common/Toast';
 
 export default function ActionButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,6 +13,12 @@ export default function ActionButton() {
   const [scheduleType, setScheduleType] = useState('once');
   const [scheduleValue, setScheduleValue] = useState('');
   const [cronError, setCronError] = useState('');
+
+  const [confirm, setConfirm] = useState(false);
+
+  function addANewTask() {
+    setConfirm(true);
+  }
 
   return (
     <>
@@ -196,6 +203,10 @@ export default function ActionButton() {
                 Cancel
               </Button>
               <Button
+                onClick={() => {
+                  addANewTask();
+                  setIsOpen(false);
+                }}
                 title='Confirm'
                 className='min-w-20 text-sm bg-(--themeAccent) text-white cursor-pointer hover:brightness-125 transition-all font-bold'
               >
@@ -205,6 +216,11 @@ export default function ActionButton() {
           </DialogPanel>
         </div>
       </Dialog>
+      {confirm && (
+        <Toast onClose={() => setConfirm(false)} position='bottom-right'>
+          Test
+        </Toast>
+      )}
     </>
   );
 }
