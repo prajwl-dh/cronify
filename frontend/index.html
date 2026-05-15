@@ -1,7 +1,20 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
+
+    <script>
+      (() => {
+        const theme = localStorage.getItem('theme');
+
+        const isDark =
+          theme === 'dark' ||
+          (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        document.documentElement.classList.toggle('dark', isDark);
+      })();
+    </script>
+
     <link href="./src/index.css" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cronify Web UI</title>

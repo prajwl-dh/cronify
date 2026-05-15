@@ -1,44 +1,52 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { ThemeContext, type Theme } from './themeContext';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import type { Theme } from './theme';
+import { ThemeContext } from './themeContext';
 
-type Props = {
+interface ThemeProviderProps {
   children: ReactNode;
-};
+}
 
-export function ThemeProvider({ children }: Props) {
+export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === 'undefined') return 'system';
-    return (localStorage.getItem('theme') as Theme) || 'system';
+    const storedTheme = localStorage.getItem('theme') as Theme | null;
+
+    return storedTheme || 'system';
   });
 
   useEffect(() => {
+    const root = document.documentElement;
+
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const applyTheme = () => {
       const isDark =
         theme === 'dark' || (theme === 'system' && mediaQuery.matches);
 
-      document.documentElement.classList.toggle('dark', isDark);
+      root.classList.toggle('dark', isDark);
     };
 
     applyTheme();
 
-    if (theme === 'system') {
-      mediaQuery.addEventListener('change', applyTheme);
+    mediaQuery.addEventListener('change', applyTheme);
 
-      return () => {
-        mediaQuery.removeEventListener('change', applyTheme);
-      };
-    }
+    return () => {
+      mediaQuery.removeEventListener('change', applyTheme);
+    };
   }, [theme]);
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  const value = useMemo(
+    () => ({
+      theme,
+      setTheme,
+    }),
+    [theme],
+  );
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }

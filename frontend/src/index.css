@@ -1,38 +1,66 @@
 @import 'tailwindcss';
 
-/* LIGHT THEME (default) */
+/* Tailwind v4 custom dark variant */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =========================
+   LIGHT THEME
+========================= */
 :root {
   --background: #f8fafc;
-  --foreground: #fefefe;
+  --foreground: #ffffff;
+
   --primaryText: #333333;
   --secondaryText: #94a3b8;
+
   --border: #e2e8f0;
   --borderActive: #6366f1;
+
   --bgActive: #eef2ff;
   --themeAccent: #4f39f6;
 }
 
-/* DARK THEME */
+/* =========================
+   DARK THEME
+========================= */
 html.dark {
   --background: #020617;
   --foreground: #0f172a;
+
   --primaryText: #f1f5f9;
   --secondaryText: #8596ad;
+
   --border: #1e293b;
   --borderActive: #6366f1;
+
   --bgActive: #191e3d;
   --themeAccent: #6366f1;
 }
 
+/* =========================
+   GLOBALS
+========================= */
+body {
+  background: var(--background);
+  color: var(--primaryText);
+
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* Animation */
 @keyframes bounce-short {
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-15%);
   }
 }
+
 .animate-bounce-short {
   animation: bounce-short 0.5s ease-in-out 1;
 }
