@@ -16,6 +16,14 @@ export default function ActionButton() {
 
   const { toast } = useToast();
 
+  function addANewTask() {
+    try {
+      toast.success('New task added successfully');
+    } catch {
+      toast.error('An error occured while adding the task');
+    }
+  }
+
   return (
     <>
       <Button
@@ -195,9 +203,6 @@ export default function ActionButton() {
                 title='Cancel'
                 onClick={() => {
                   setIsOpen(false);
-                  toast.error(
-                    'An error occured because the task has been cancelled',
-                  );
                 }}
                 className='min-w-20 text-sm border border-(--border) bg-(--background) text-(--primaryText) cursor-pointer hover:brightness-90 transition-all font-bold'
               >
@@ -206,7 +211,7 @@ export default function ActionButton() {
               <Button
                 onClick={() => {
                   setIsOpen(false);
-                  toast.success('Success');
+                  addANewTask();
                 }}
                 title='Confirm'
                 className='min-w-20 text-sm bg-(--themeAccent) text-white cursor-pointer hover:brightness-125 transition-all font-bold'
