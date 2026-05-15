@@ -7,11 +7,13 @@ import { requireFlag } from '../lib/errors';
  * Schedules a new task by sending a request to the API.
  *
  * Requires:
+ * - name: name of the task
  * - cmd: command to execute
  * - schedule: cron expression or date string
  */
 export async function addCommand(values: any) {
   // Validate required CLI inputs
+  requireFlag(values.name, 'Missing --name');
   requireFlag(values.cmd, 'Missing --cmd');
   requireFlag(values.schedule, 'Missing --schedule');
 
@@ -19,6 +21,7 @@ export async function addCommand(values: any) {
   const data = await apiFetch(`${getApiUrl()}/api/tasks`, {
     method: 'POST',
     body: JSON.stringify({
+      name: values.name,
       command: values.cmd,
       schedule: values.schedule,
     }),

@@ -10,10 +10,11 @@ import { logger } from '../../../utils/logger';
 export async function addTask(req: Request, db: Database) {
   try {
     const body = (await req.json()) as {
+      name: string;
       command: string;
       schedule: string;
     };
-    const { command, schedule } = body;
+    const { name, command, schedule } = body;
 
     logger.info(
       `POST /api/tasks endpoint called. Request body: ${JSON.stringify(body)}`,
@@ -21,8 +22,10 @@ export async function addTask(req: Request, db: Database) {
 
     // Validate required fields
     if (!command || !schedule) {
-      logger.error(`POST /api/tasks endpoint. Missing command or schedule.\n`);
-      return new Response('Missing command or schedule', {
+      logger.error(
+        `POST /api/tasks endpoint. Missing name, command or schedule.\n`,
+      );
+      return new Response('Missing name, command or schedule', {
         status: 400,
       });
     }
@@ -62,10 +65,10 @@ export async function addTask(req: Request, db: Database) {
     // Insert the new task into the database
     db.query(
       `
-              INSERT INTO tasks (command, cron_string, next_run, status)
-              VALUES (?, ?, ?, 'inactive')
+              INSERT INTO tasks (name, command, cron_string, next_run, status)
+              VALUES (?, ?, ?, ?, 'inactive')
             `,
-    ).run(command, schedule, nextRunMs);
+    ).run(name, command, schedule, nextRunMs);
 
     // Retrieve the ID of the newly created task
     const row = db.query('SELECT last_insert_rowid() as id').get() as {

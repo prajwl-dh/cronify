@@ -27,6 +27,7 @@ export function initDatabase(): Database {
   db.run(`
         CREATE TABLE IF NOT EXISTS tasks(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
             command TEXT NOT NULL,
             cron_string TEXT NOT NULL,
             next_run INTEGER NOT NULL,

@@ -20,6 +20,7 @@ export async function runCli(args: string[]) {
   const { positionals, values } = parseArgs({
     args,
     options: {
+      name: { type: 'string', short: 'n' },
       cmd: { type: 'string', short: 'c' },
       schedule: { type: 'string', short: 's' },
       id: { type: 'string', short: 'i' },

@@ -76,7 +76,7 @@ function log(level: LogLevel, message: string, ...args: any[]) {
   console.log(`${colors[level]}${formatted}${reset}`);
 
   // Plain text file output
-  writeToFile(stripANSI(JSON.stringify(formatted)));
+  writeToFile(stripANSI(formatted));
 }
 
 export const logger = {
