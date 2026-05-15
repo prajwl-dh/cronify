@@ -1,4 +1,5 @@
 import { Dialog, DialogPanel } from '@headlessui/react';
+import { useMutation } from '@tanstack/react-query';
 import { CalendarDays, Plus, Repeat, X, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 import { APP_PORT } from '../../config/config';
@@ -17,9 +18,29 @@ export default function ActionButton() {
   const [scheduleValue, setScheduleValue] = useState('');
   const [cronError, setCronError] = useState('');
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const { toast } = useToast();
+
+  // const queryClient = useQueryClient();
+
+  const addTaskMutation = useMutation({
+    mutationFn: async (payload: Task) => {
+      const response = await fetch(`http://localhost:${APP_PORT}/api/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error('Failed to add task');
+      return response.json();
+    },
+    onSuccess: () => {
+      // queryClient.invalidateQueries(['tasks']); // optional: refresh tasks list
+      toast.success('Task added successfully');
+      setIsOpen(false);
+    },
+    onError: () => {
+      toast.error('An error occurred while adding the task');
+    },
+  });
 
   async function addANewTask(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,39 +62,18 @@ export default function ActionButton() {
       }
     }
 
-    setIsSubmitting(true);
-    try {
-      const payload = {
-        name: name,
-        command: command,
-        schedule:
-          scheduleType === 'once'
-            ? '@once'
-            : scheduleType === 'date'
-              ? formatDateTimeLocal(scheduleValue)
-              : scheduleValue,
-      } as Task;
+    const payload = {
+      name: name,
+      command: command,
+      schedule:
+        scheduleType === 'once'
+          ? '@once'
+          : scheduleType === 'date'
+            ? formatDateTimeLocal(scheduleValue)
+            : scheduleValue,
+    } as Task;
 
-      const response = await fetch(`http://localhost:${APP_PORT}/api/tasks`, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-
-      setIsOpen(false);
-
-      toast.success('Task added successfully');
-    } catch {
-      toast.error('An error occured while adding the task');
-    } finally {
-      setIsSubmitting(false);
-    }
+    addTaskMutation.mutate(payload);
   }
 
   return (
@@ -116,8 +116,8 @@ export default function ActionButton() {
               </div>
 
               <button
-                disabled={isSubmitting}
-                className={`cursor-pointer ${isSubmitting && 'hidden'}`}
+                disabled={addTaskMutation.isPending}
+                className={`cursor-pointer ${addTaskMutation.isPending && 'hidden'}`}
                 title='Close Popup'
                 onClick={() => setIsOpen(false)}
               >
@@ -131,7 +131,7 @@ export default function ActionButton() {
                 <div className='flex flex-col gap-2'>
                   <span className='font-semibold text-sm'>Task Name</span>
                   <input
-                    disabled={isSubmitting}
+                    disabled={addTaskMutation.isPending}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className='w-full bg-(--background) border-[1.5px] border-(--border) rounded-xl px-4 py-2.5 placeholder:text-(--secondaryText) focus:outline-none focus:border-(--borderActive)'
@@ -146,7 +146,7 @@ export default function ActionButton() {
                     Command to Execute
                   </span>
                   <input
-                    disabled={isSubmitting}
+                    disabled={addTaskMutation.isPending}
                     value={command}
                     onChange={(e) => setCommand(e.target.value)}
                     className='w-full bg-(--background) border-[1.5px] border-(--border) rounded-xl px-4 py-2.5 placeholder:text-(--secondaryText) focus:outline-none focus:border-(--borderActive)'
@@ -169,7 +169,7 @@ export default function ActionButton() {
                       { id: 'cron', icon: Repeat, label: 'Recurring' },
                     ].map((type) => (
                       <button
-                        disabled={isSubmitting}
+                        disabled={addTaskMutation.isPending}
                         key={type.id}
                         type='button'
                         onClick={() => {
@@ -201,7 +201,7 @@ export default function ActionButton() {
                       Select Date & Time
                     </span>
                     <input
-                      disabled={isSubmitting}
+                      disabled={addTaskMutation.isPending}
                       type='datetime-local'
                       required
                       value={scheduleValue}
@@ -217,7 +217,7 @@ export default function ActionButton() {
                       Cron Expression
                     </span>
                     <input
-                      disabled={isSubmitting}
+                      disabled={addTaskMutation.isPending}
                       type='text'
                       required
                       value={scheduleValue}
@@ -265,22 +265,22 @@ export default function ActionButton() {
               {/* Buttons */}
               <div className='flex items-center justify-end gap-2'>
                 <Button
-                  disabled={isSubmitting}
+                  disabled={addTaskMutation.isPending}
                   title='Cancel'
                   onClick={() => {
                     setIsOpen(false);
                   }}
-                  className={`min-w-20 text-sm border border-(--border) bg-(--background) text-(--primaryText) cursor-pointer hover:brightness-90 transition-all font-bold ${isSubmitting && 'hidden'}`}
+                  className={`min-w-20 text-sm border border-(--border) bg-(--background) text-(--primaryText) cursor-pointer hover:brightness-90 transition-all font-bold ${addTaskMutation.isPending && 'hidden'}`}
                 >
                   Cancel
                 </Button>
                 <Button
-                  disabled={isSubmitting}
+                  disabled={addTaskMutation.isPending}
                   type='submit'
                   title='Confirm'
-                  className={`min-w-20 text-sm bg-(--themeAccent) text-white cursor-pointer hover:brightness-125 transition-all font-bold ${isSubmitting && 'cursor-not-allowed'}`}
+                  className={`min-w-20 text-sm bg-(--themeAccent) text-white cursor-pointer hover:brightness-125 transition-all font-bold ${addTaskMutation.isPending && 'cursor-not-allowed'}`}
                 >
-                  {isSubmitting ? 'Submitting...' : 'Confirm'}
+                  {addTaskMutation.isPending ? 'Submitting...' : 'Confirm'}
                 </Button>
               </div>
             </form>

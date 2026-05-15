@@ -21,7 +21,6 @@ export function startServer(db: Database, port: number) {
 
       async fetch(req) {
         const url = new URL(req.url);
-        const pathname = url.pathname.replace(/\/+$/, '');
 
         // Helper to add CORS headers
         function withCors(response: Response) {
@@ -40,7 +39,7 @@ export function startServer(db: Database, port: number) {
         }
 
         // Serve UI at root
-        if (pathname === '/' || pathname === '/index.html') {
+        if (url.pathname === '/' || url.pathname === '/index.html') {
           return withCors(
             new Response(indexHtml.toString(), {
               headers: { 'Content-Type': 'text/html' },
@@ -49,32 +48,32 @@ export function startServer(db: Database, port: number) {
         }
 
         // GET /api/tasks
-        if (pathname === '/api/tasks' && req.method === 'GET') {
+        if (url.pathname === '/api/tasks' && req.method === 'GET') {
           return withCors(await getTasks(db));
         }
 
         // POST /api/tasks
-        if (pathname === '/api/tasks' && req.method === 'POST') {
+        if (url.pathname === '/api/tasks' && req.method === 'POST') {
           return withCors(await addTask(req, db));
         }
 
         // GET /api/logs
-        if (pathname === '/api/logs' && req.method === 'GET') {
+        if (url.pathname === '/api/logs' && req.method === 'GET') {
           return withCors(await getLogs(db));
         }
 
         // GET /api/logs/:task_id
-        if (pathname.startsWith('/api/logs') && req.method === 'GET') {
+        if (url.pathname.startsWith('/api/logs') && req.method === 'GET') {
           return withCors(await getLog(url, db));
         }
 
         // DELETE /api/tasks/:id
-        if (pathname.startsWith('/api/tasks/') && req.method === 'DELETE') {
+        if (url.pathname.startsWith('/api/tasks/') && req.method === 'DELETE') {
           return withCors(await deleteTask(url, db));
         }
 
         // POST /api/shutdown
-        if (pathname === '/api/shutdown' && req.method === 'POST') {
+        if (url.pathname === '/api/shutdown' && req.method === 'POST') {
           return withCors(await shutdownDaemon());
         }
 
