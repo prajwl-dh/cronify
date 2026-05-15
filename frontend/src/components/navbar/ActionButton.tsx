@@ -1,9 +1,9 @@
 import { Dialog, DialogPanel } from '@headlessui/react';
 import { CalendarDays, Plus, Repeat, X, Zap } from 'lucide-react';
 import { useState } from 'react';
+import { useToast } from '../../store/toast/useToast';
 import cronValidator from '../../utils/validator';
 import Button from '../common/Button';
-import Toast from '../common/Toast';
 
 export default function ActionButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,11 +14,7 @@ export default function ActionButton() {
   const [scheduleValue, setScheduleValue] = useState('');
   const [cronError, setCronError] = useState('');
 
-  const [confirm, setConfirm] = useState(false);
-
-  function addANewTask() {
-    setConfirm(true);
-  }
+  const { toast } = useToast();
 
   return (
     <>
@@ -197,15 +193,20 @@ export default function ActionButton() {
             <div className='flex items-center justify-end gap-2'>
               <Button
                 title='Cancel'
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  toast.error(
+                    'An error occured because the task has been cancelled',
+                  );
+                }}
                 className='min-w-20 text-sm border border-(--border) bg-(--background) text-(--primaryText) cursor-pointer hover:brightness-90 transition-all font-bold'
               >
                 Cancel
               </Button>
               <Button
                 onClick={() => {
-                  addANewTask();
                   setIsOpen(false);
+                  toast.success('Success');
                 }}
                 title='Confirm'
                 className='min-w-20 text-sm bg-(--themeAccent) text-white cursor-pointer hover:brightness-125 transition-all font-bold'
@@ -216,11 +217,6 @@ export default function ActionButton() {
           </DialogPanel>
         </div>
       </Dialog>
-      {confirm && (
-        <Toast onClose={() => setConfirm(false)} position='bottom-right'>
-          Test
-        </Toast>
-      )}
     </>
   );
 }

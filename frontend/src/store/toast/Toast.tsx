@@ -1,4 +1,3 @@
-import { X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -16,7 +15,6 @@ interface ToastProps {
   duration?: number | null;
   position?: ToastPosition;
   onClose?: () => void;
-  closable?: boolean;
 }
 
 const positionClasses: Record<ToastPosition, string> = {
@@ -76,10 +74,9 @@ const animationClasses: Record<
 export default function Toast({
   children,
   className = '',
-  duration = 3000,
+  duration = 2000,
   position = 'bottom-right',
   onClose,
-  closable = true,
 }: ToastProps) {
   const [closing, setClosing] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -114,8 +111,9 @@ export default function Toast({
 
   return (
     <div
+      onClick={closeWithAnimation}
       className={twMerge(
-        'min-w-40 fixed z-50 group border bg-(--foreground) text-(--primaryText) border-(--border) px-4 py-3 rounded-xl shadow flex items-start gap-3',
+        'select-none min-w-52 sm:min-w-60 fixed z-50 group border bg-(--foreground) text-(--primaryText) border-(--border) px-4 py-3 rounded-xl shadow flex items-start gap-3',
         positionClasses[position],
         className,
 
@@ -127,15 +125,6 @@ export default function Toast({
       )}
     >
       <div className='flex-1'>{children}</div>
-
-      {closable && (
-        <button
-          onClick={closeWithAnimation}
-          className='absolute -top-2 -right-1 flex items-center justify-center w-5 h-5 rounded-full bg-neutral-700 text-white border border-(--border) shadow-md opacity-0 group-hover:opacity-100 transition'
-        >
-          <X size={14} />
-        </button>
-      )}
     </div>
   );
 }
