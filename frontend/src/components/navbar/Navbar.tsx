@@ -11,7 +11,7 @@ export default function Navbar() {
           className='flex items-center gap-1 select-none cursor-pointer'
           onClick={() => window.location.reload()}
         >
-          <div className='p-1 rounded-xl bg-(--themeAccent)'>
+          <div className='p-1 rounded-full bg-(--themeAccent)'>
             <Terminal className='w-3 h-3 md:w-5 md:h-5 text-white' />
           </div>
           <span className='text-md md:text-xl font-black tracking-wider text-(--themeAccent)'>

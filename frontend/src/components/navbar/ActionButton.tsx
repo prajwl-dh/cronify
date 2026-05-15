@@ -104,12 +104,12 @@ export default function ActionButton() {
         >
           <DialogPanel
             transition
-            className={`flex flex-col gap-4 p-6 w-full max-w-lg rounded-xl bg-(--foreground) border border-(--border) ease-in-out duration-500`}
+            className={`flex flex-col gap-4 p-6 w-full max-w-lg rounded-2xl bg-(--foreground) border border-(--border) ease-in-out duration-500`}
           >
             {/* Title */}
             <div className='flex items-center justify-between mb-2 text-(--primaryText)'>
               <div className={`flex items-center gap-2`}>
-                <div className='bg-(--bgActive) p-1 rounded-xl'>
+                <div className='bg-(--bgActive) p-1 rounded-2xl'>
                   <Plus className='h-5 w-5 font-bold' />
                 </div>
                 <span className='font-bold text-lg'>Add A New Task</span>
@@ -134,7 +134,7 @@ export default function ActionButton() {
                     disabled={addTaskMutation.isPending}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className='w-full bg-(--background) border-[1.5px] border-(--border) rounded-xl px-4 py-2.5 placeholder:text-(--secondaryText) focus:outline-none focus:border-(--borderActive)'
+                    className='w-full bg-(--background) border-[1.5px] border-(--border) rounded-2xl px-4 py-2.5 placeholder:text-(--secondaryText) focus:outline-none focus:border-(--borderActive)'
                     type='text'
                     placeholder='eg., Daily DB Backup'
                     required
@@ -149,7 +149,7 @@ export default function ActionButton() {
                     disabled={addTaskMutation.isPending}
                     value={command}
                     onChange={(e) => setCommand(e.target.value)}
-                    className='w-full bg-(--background) border-[1.5px] border-(--border) rounded-xl px-4 py-2.5 placeholder:text-(--secondaryText) focus:outline-none focus:border-(--borderActive)'
+                    className='w-full bg-(--background) border-[1.5px] border-(--border) rounded-2xl px-4 py-2.5 placeholder:text-(--secondaryText) focus:outline-none focus:border-(--borderActive)'
                     type='text'
                     placeholder='e.g., bun ./home/script.js'
                     required
@@ -178,7 +178,7 @@ export default function ActionButton() {
                           }
                           setScheduleType(type.id);
                         }}
-                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
+                        className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all cursor-pointer ${
                           scheduleType === type.id
                             ? 'bg-(--bgActive) border-(--borderActive) text-(--themeAccent) shadow-sm'
                             : 'bg-(--foreground) border-(--border) hover:bg-(--bgActive) hover:border-(--bgActive)'
@@ -206,7 +206,7 @@ export default function ActionButton() {
                       required
                       value={scheduleValue}
                       onChange={(e) => setScheduleValue(e.target.value)}
-                      className='w-full bg-(--background) border-[1.5px] border-(--border) rounded-xl px-4 py-2.5 placeholder:text-(--secondaryText) focus:outline-none focus:border-(--borderActive)'
+                      className='w-full bg-(--background) border-[1.5px] border-(--border) rounded-2xl px-4 py-2.5 placeholder:text-(--secondaryText) focus:outline-none focus:border-(--borderActive)'
                     />
                   </div>
                 )}
@@ -230,7 +230,7 @@ export default function ActionButton() {
                         }
                       }}
                       placeholder='* * * * *'
-                      className={`w-full bg-(--background) border-[1.5px] rounded-xl px-4 py-2.5 placeholder:text-(--secondaryText) focus:outline-none ${cronError.length > 0 ? 'border-red-500 focus:border-red-500' : 'focus:border-(--borderActive) border-(--border)'}`}
+                      className={`w-full bg-(--background) border-[1.5px] rounded-2xl px-4 py-2.5 placeholder:text-(--secondaryText) focus:outline-none ${cronError.length > 0 ? 'border-red-500 focus:border-red-500' : 'focus:border-(--borderActive) border-(--border)'}`}
                     />
                     {cronError.length > 0 && (
                       <span className='text-xs text-red-500'>

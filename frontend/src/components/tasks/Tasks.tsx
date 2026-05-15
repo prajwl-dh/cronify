@@ -14,9 +14,9 @@ export default function Tasks() {
 
   if (isPending) {
     return (
-      <div className='fixed inset-0 flex items-center justify-center bg-gray-900 text-white'>
+      <div className='fixed inset-0 flex items-center justify-center bg-(--background) text-(--primaryText)'>
         <div className='text-center'>
-          <div className='animate-spin h-10 w-10 border-4 border-white border-t-transparent rounded-full mx-auto mb-4' />
+          <div className='animate-spin h-10 w-10 border-4 border-(--primaryText) border-t-transparent rounded-full mx-auto mb-4' />
           <p>Trying to connect to the server...</p>
           <p className='text-sm opacity-80 pt-4'>
             Make sure the cronify daemon is running!
@@ -24,7 +24,7 @@ export default function Tasks() {
 
           <button
             onClick={() => window.location.reload()}
-            className='mt-6 px-4 py-2 bg-white text-black rounded hover:bg-gray-200 transition'
+            className='mt-6 px-4 py-2 bg-white text-black rounded-2xl hover:bg-gray-200 transition shadow-md cursor-pointer select-none'
           >
             Reload
           </button>
@@ -35,7 +35,7 @@ export default function Tasks() {
 
   if (error) {
     return (
-      <div className='fixed inset-0 flex items-center justify-center bg-red-950 text-white'>
+      <div className='fixed inset-0 flex items-center justify-center bg-(--background) text-(--primaryText)'>
         <div className='text-center max-w-md'>
           <h2 className='text-xl font-semibold mb-2'>Server unavailable</h2>
           <p className='text-sm opacity-80 mb-4'>
@@ -47,7 +47,7 @@ export default function Tasks() {
 
           <button
             onClick={() => window.location.reload()}
-            className='px-4 py-2 bg-white text-black rounded hover:bg-gray-200 transition'
+            className='px-4 py-2 bg-white text-black rounded-2xl hover:bg-gray-200 transition cursor-pointer select-none'
           >
             Reload
           </button>

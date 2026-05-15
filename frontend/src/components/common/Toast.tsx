@@ -113,7 +113,7 @@ export default function Toast({
     <div
       onClick={closeWithAnimation}
       className={twMerge(
-        'select-none min-w-52 sm:min-w-60 fixed z-50 group border bg-(--foreground) text-(--primaryText) border-(--border) px-4 py-3 rounded-xl shadow flex items-start gap-3',
+        'select-none min-w-52 sm:min-w-60 fixed z-50 group border bg-(--foreground) text-(--primaryText) border-(--border) px-4 py-3 rounded-2xl shadow flex items-start gap-3',
         positionClasses[position],
         className,
 

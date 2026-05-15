@@ -17,9 +17,9 @@ export default function FilterTask({
       {/* Total */}
       <div
         onClick={() => setStatusFilter('all')}
-        className={`bg-(--foreground) border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${statusFilter === 'all' ? 'border-indigo-500 ring-1 ring-indigo-500 dark:border-indigo-400 dark:ring-indigo-400' : 'border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800'}`}
+        className={`bg-(--foreground) border rounded-2xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${statusFilter === 'all' ? 'border-indigo-500 ring-1 ring-indigo-500 dark:border-indigo-400 dark:ring-indigo-400' : 'border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800'}`}
       >
-        <div className='p-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl'>
+        <div className='p-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl'>
           <Activity className='w-6 h-6' />
         </div>
         <div>
@@ -35,9 +35,9 @@ export default function FilterTask({
       {/* Scheduled */}
       <div
         onClick={() => setStatusFilter('inactive')}
-        className={`bg-(--foreground) border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${statusFilter === 'inactive' ? 'border-emerald-500 ring-1 ring-emerald-500 dark:border-emerald-400 dark:ring-emerald-400' : 'border-slate-200 dark:border-slate-800 hover:border-emerald-200 dark:hover:border-emerald-800'}`}
+        className={`bg-(--foreground) border rounded-2xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${statusFilter === 'inactive' ? 'border-emerald-500 ring-1 ring-emerald-500 dark:border-emerald-400 dark:ring-emerald-400' : 'border-slate-200 dark:border-slate-800 hover:border-emerald-200 dark:hover:border-emerald-800'}`}
       >
-        <div className='p-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl'>
+        <div className='p-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl'>
           <Clock className='w-6 h-6' />
         </div>
         <div>
@@ -53,9 +53,9 @@ export default function FilterTask({
       {/* Completed */}
       <div
         onClick={() => setStatusFilter('obsolete')}
-        className={`bg-(--foreground) border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${statusFilter === 'obsolete' ? 'border-slate-500 ring-1 ring-slate-500 dark:border-slate-400 dark:ring-slate-400' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}
+        className={`bg-(--foreground) border rounded-2xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${statusFilter === 'obsolete' ? 'border-slate-500 ring-1 ring-slate-500 dark:border-slate-400 dark:ring-slate-400' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}
       >
-        <div className='p-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl'>
+        <div className='p-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl'>
           <CheckCircle2 className='w-6 h-6' />
         </div>
         <div>

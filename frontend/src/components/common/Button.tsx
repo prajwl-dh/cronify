@@ -15,7 +15,7 @@ export default function Button({
     <button
       {...props}
       className={twMerge(
-        'rounded-xl border border-(--border) px-2 py-1 md:p-2 outline-none',
+        'rounded-2xl border border-(--border) px-2 py-1 md:p-2 outline-none',
         className,
       )}
     >

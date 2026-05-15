@@ -9,7 +9,7 @@ export default function ThemePicker() {
     <Menu>
       <MenuButton
         title='Theme Selector'
-        className={`outline-none text-(--primaryText) p-1 md:p-2 border border-(--border) rounded-xl bg-(--background) hover:bg-(--bgActive) cursor-pointer`}
+        className={`outline-none text-(--primaryText) p-1 md:p-2 border border-(--border) rounded-2xl bg-(--background) hover:bg-(--bgActive) cursor-pointer`}
       >
         {theme === 'light' && <Sun className='w-4 h-4' />}
         {theme === 'dark' && <Moon className='w-4 h-4' />}
@@ -17,11 +17,11 @@ export default function ThemePicker() {
       </MenuButton>
       <MenuItems
         anchor='bottom end'
-        className={`bg-(--foreground) p-1 flex flex-col gap-1 rounded-xl border border-(--border) outline-none select-none text-(--primaryText)`}
+        className={`bg-(--foreground) p-1 flex flex-col gap-1 rounded-2xl border border-(--border) outline-none select-none text-(--primaryText)`}
       >
         <MenuItem>
           <div
-            className={`px-2 py-0.5 flex items-center gap-4 hover:bg-(--bgActive) hover:text-(--themeAccent) rounded-xl ${theme === 'light' && 'bg-(--bgActive) text-(--themeAccent)'}`}
+            className={`px-2 py-0.5 flex items-center gap-4 hover:bg-(--bgActive) hover:text-(--themeAccent) rounded-2xl ${theme === 'light' && 'bg-(--bgActive) text-(--themeAccent)'}`}
             onClick={() => setTheme('light')}
           >
             <Sun className='w-4 h-4' />
@@ -30,7 +30,7 @@ export default function ThemePicker() {
         </MenuItem>
         <MenuItem>
           <div
-            className={`px-2 py-0.5 flex items-center gap-4 hover:bg-(--bgActive) hover:text-(--themeAccent) rounded-xl ${theme === 'dark' && 'bg-(--bgActive) text-(--themeAccent)'}`}
+            className={`px-2 py-0.5 flex items-center gap-4 hover:bg-(--bgActive) hover:text-(--themeAccent) rounded-2xl ${theme === 'dark' && 'bg-(--bgActive) text-(--themeAccent)'}`}
             onClick={() => setTheme('dark')}
           >
             <Moon className='w-4 h-4' />
@@ -39,7 +39,7 @@ export default function ThemePicker() {
         </MenuItem>
         <MenuItem>
           <div
-            className={`px-2 py-0.5 flex items-center gap-4 hover:bg-(--bgActive) hover:text-(--themeAccent) rounded-xl ${theme === 'system' && 'bg-(--bgActive) text-(--themeAccent)'}`}
+            className={`px-2 py-0.5 flex items-center gap-4 hover:bg-(--bgActive) hover:text-(--themeAccent) rounded-2xl ${theme === 'system' && 'bg-(--bgActive) text-(--themeAccent)'}`}
             onClick={() => setTheme('system')}
           >
             <MonitorCog className='w-4 h-4' />
