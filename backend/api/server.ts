@@ -22,48 +22,62 @@ export function startServer(db: Database, port: number) {
       async fetch(req) {
         const url = new URL(req.url);
 
-        // Route incoming requests to their corresponding handlers
+        // Helper to add CORS headers
+        function withCors(response: Response) {
+          response.headers.set('Access-Control-Allow-Origin', '*');
+          response.headers.set(
+            'Access-Control-Allow-Methods',
+            'GET, POST, DELETE, OPTIONS',
+          );
+          response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+          return response;
+        }
+
+        // Handle preflight OPTIONS requests
+        if (req.method === 'OPTIONS') {
+          return withCors(new Response(null, { status: 204 }));
+        }
 
         // Serve UI at root
         if (url.pathname === '/' || url.pathname === '/index.html') {
-          return new Response(indexHtml.toString(), {
-            headers: {
-              'Content-Type': 'text/html',
-            },
-          });
+          return withCors(
+            new Response(indexHtml.toString(), {
+              headers: { 'Content-Type': 'text/html' },
+            }),
+          );
         }
 
         // GET /api/tasks
         if (url.pathname === '/api/tasks' && req.method === 'GET') {
-          return await getTasks(db);
+          return withCors(await getTasks(db));
         }
 
         // POST /api/tasks
         if (url.pathname === '/api/tasks' && req.method === 'POST') {
-          return await addTask(req, db);
+          return withCors(await addTask(req, db));
         }
 
         // GET /api/logs
         if (url.pathname === '/api/logs' && req.method === 'GET') {
-          return await getLogs(db);
+          return withCors(await getLogs(db));
         }
 
         // GET /api/logs/:task_id
         if (url.pathname.startsWith('/api/logs') && req.method === 'GET') {
-          return await getLog(url, db);
+          return withCors(await getLog(url, db));
         }
 
         // DELETE /api/tasks/:id
         if (url.pathname.startsWith('/api/tasks/') && req.method === 'DELETE') {
-          return await deleteTask(url, db);
+          return withCors(await deleteTask(url, db));
         }
 
         // POST /api/shutdown
         if (url.pathname === '/api/shutdown' && req.method === 'POST') {
-          return await shutdownDaemon();
+          return withCors(await shutdownDaemon());
         }
 
-        return new Response('Not Found', { status: 404 });
+        return withCors(new Response('Not Found', { status: 404 }));
       },
     });
   } catch (error: any) {

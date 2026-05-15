@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 
-import Toast from './Toast';
+import Toast from '../../components/common/Toast';
 
 import { Ban, CircleCheck } from 'lucide-react';
 import {
