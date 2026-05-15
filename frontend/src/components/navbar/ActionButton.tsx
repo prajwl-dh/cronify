@@ -1,5 +1,5 @@
 import { Dialog, DialogPanel } from '@headlessui/react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CalendarDays, Plus, Repeat, X, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 import { APP_PORT } from '../../config/config';
@@ -20,7 +20,7 @@ export default function ActionButton() {
 
   const { toast } = useToast();
 
-  // const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
   const addTaskMutation = useMutation({
     mutationFn: async (payload: Task) => {
@@ -33,7 +33,7 @@ export default function ActionButton() {
       return response.json();
     },
     onSuccess: () => {
-      // queryClient.invalidateQueries(['tasks']); // optional: refresh tasks list
+      queryClient.invalidateQueries();
       toast.success('Task added successfully');
       setIsOpen(false);
     },
