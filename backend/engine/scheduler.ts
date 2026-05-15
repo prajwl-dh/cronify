@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite';
 import { CronExpressionParser } from 'cron-parser';
-import type { Task } from '../../shared/types/taskType';
+import type { Task } from '../types/taskType';
 import { logger } from '../utils/logger';
 import { executeTask } from './runner';
 

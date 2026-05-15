@@ -1,4 +1,4 @@
-import type { Task } from '../../../shared/types/taskType';
+import type { Task } from '../../types/taskType';
 import { apiFetch } from '../lib/api';
 import { getApiUrl } from '../lib/config';
 

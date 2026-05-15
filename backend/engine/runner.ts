@@ -1,5 +1,5 @@
 import { Database } from 'bun:sqlite';
-import type { Task } from '../../shared/types/taskType';
+import type { Task } from '../types/taskType';
 import { logger } from '../utils/logger';
 
 /**

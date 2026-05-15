@@ -1,4 +1,4 @@
-import type { Log } from '../../../shared/types/logType';
+import type { Log } from '../../types/logType';
 import { apiFetch } from '../lib/api';
 import { getApiUrl } from '../lib/config';
 import { requireFlag, requireNumber } from '../lib/errors';
