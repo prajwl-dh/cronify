@@ -117,13 +117,11 @@ export default function ActionButton() {
 
               <button
                 disabled={isSubmitting}
-                className={`cursor-pointer ${isSubmitting && 'cursor-not-allowed'}`}
+                className={`cursor-pointer ${isSubmitting && 'hidden'}`}
                 title='Close Popup'
                 onClick={() => setIsOpen(false)}
               >
-                <X
-                  className={`h-5 w-5 font-bold ${isSubmitting && 'cursor-not-allowed'}`}
-                />
+                <X className={`h-5 w-5 font-bold`} />
               </button>
             </div>
 
@@ -272,7 +270,7 @@ export default function ActionButton() {
                   onClick={() => {
                     setIsOpen(false);
                   }}
-                  className={`min-w-20 text-sm border border-(--border) bg-(--background) text-(--primaryText) cursor-pointer hover:brightness-90 transition-all font-bold ${isSubmitting && 'cursor-not-allowed'}`}
+                  className={`min-w-20 text-sm border border-(--border) bg-(--background) text-(--primaryText) cursor-pointer hover:brightness-90 transition-all font-bold ${isSubmitting && 'hidden'}`}
                 >
                   Cancel
                 </Button>
@@ -282,7 +280,7 @@ export default function ActionButton() {
                   title='Confirm'
                   className={`min-w-20 text-sm bg-(--themeAccent) text-white cursor-pointer hover:brightness-125 transition-all font-bold ${isSubmitting && 'cursor-not-allowed'}`}
                 >
-                  Confirm
+                  {isSubmitting ? 'Submitting...' : 'Confirm'}
                 </Button>
               </div>
             </form>
