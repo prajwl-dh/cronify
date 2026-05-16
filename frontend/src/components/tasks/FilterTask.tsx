@@ -13,7 +13,7 @@ export default function FilterTask({
   setStatusFilter,
 }: FilterTaskType) {
   return (
-    <div className='shrink-0 grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-8 mt-2 md:mt-10'>
+    <div className='shrink-0 grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-8 mt-2 md:mt-10 select-none'>
       {/* Total */}
       <div
         onClick={() => setStatusFilter('all')}

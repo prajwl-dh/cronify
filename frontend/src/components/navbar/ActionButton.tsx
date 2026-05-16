@@ -88,7 +88,7 @@ export default function ActionButton() {
           setCronError('');
           setIsOpen(true);
         }}
-        className='text-sm bg-(--themeAccent) text-white cursor-pointer hover:brightness-125 transition-all font-bold'
+        className='text-sm bg-(--themeAccent) text-white cursor-pointer hover:brightness-125 transition-all font-bold select-none'
       >
         + Add Task
       </Button>

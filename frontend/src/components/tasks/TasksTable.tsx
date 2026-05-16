@@ -33,7 +33,7 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
     <div className='h-full flex flex-col justify-between gap-6'>
       {/* Title and Search Bar */}
       <div className='flex justify-between items-center gap-10'>
-        <h2 className='text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2'>
+        <h2 className='text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 select-none'>
           <Activity className='w-5 h-5 text-indigo-600 dark:text-indigo-400' />
           Tasks
         </h2>
