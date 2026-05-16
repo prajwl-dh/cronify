@@ -9,9 +9,14 @@ import StatusBadge from './StatusBadge';
 type TasksTableType = {
   statusFilter: string;
   tasks: Task[];
+  setShowLog: React.Dispatch<React.SetStateAction<number>>;
 };
 
-export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
+export default function TasksTable({
+  statusFilter,
+  tasks,
+  setShowLog,
+}: TasksTableType) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredTasks = useMemo(() => {
@@ -136,6 +141,7 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
             ) : (
               filteredTasks.map((task) => (
                 <tr
+                  onClick={() => setShowLog(task.id || -1)}
                   key={task.id}
                   className='hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer'
                 >
@@ -170,7 +176,10 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
                       formatReadableDateTime(task.next_run)
                     )}
                   </td>
-                  <td className='sticky right-0 z-10 px-2 py-2 bg-(--foreground) group-hover:bg-slate-50/80 dark:group-hover:bg-slate-800/50 transition-colors text-center shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.02)] dark:shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.3)] w-14'>
+                  <td
+                    onClick={(e) => e.stopPropagation()}
+                    className='sticky right-0 z-10 px-2 py-2 bg-(--foreground) group-hover:bg-slate-50/80 dark:group-hover:bg-slate-800/50 transition-colors text-center shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.02)] dark:shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.3)] w-14'
+                  >
                     <DeleteTask id={task.id || -1} />
                   </td>
                 </tr>

@@ -6,7 +6,11 @@ import Loading from '../common/Loading';
 import FilterTask from './FilterTask';
 import TasksTable from './TasksTable';
 
-export default function Tasks() {
+type TasksType = {
+  setShowLog: React.Dispatch<React.SetStateAction<number>>;
+};
+
+export default function Tasks({ setShowLog }: TasksType) {
   const [statusFilter, setStatusFilter] = useState('all');
 
   const { isPending, error, data } = useQuery({
@@ -32,7 +36,11 @@ export default function Tasks() {
         setStatusFilter={setStatusFilter}
       />
 
-      <TasksTable statusFilter={statusFilter} tasks={data} />
+      <TasksTable
+        statusFilter={statusFilter}
+        tasks={data}
+        setShowLog={setShowLog}
+      />
     </div>
   );
 }
