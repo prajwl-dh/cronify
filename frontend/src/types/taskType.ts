@@ -7,5 +7,4 @@ export type Task = {
   status?: 'active' | 'inactive' | 'obsolete';
   created_at?: number;
   updated_at?: number;
-  schedule?: string;
 };
