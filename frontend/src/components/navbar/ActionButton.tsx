@@ -206,7 +206,7 @@ export default function ActionButton() {
                       required
                       value={scheduleValue}
                       onChange={(e) => setScheduleValue(e.target.value)}
-                      className='w-full bg-(--background) border-[1.5px] border-(--border) rounded-2xl px-4 py-2.5 placeholder:text-(--secondaryText) focus:outline-none focus:border-(--borderActive)'
+                      className='w-full bg-(--background) border-[1.5px] border-(--border) rounded-2xl px-4 py-2.5 text-(--primaryText) placeholder:text-(--secondaryText) focus:outline-none focus:border-(--borderActive) dark:scheme-dark'
                     />
                   </div>
                 )}

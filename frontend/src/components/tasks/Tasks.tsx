@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { APP_PORT } from '../../config/config';
 import FilterTask from './FilterTask';
+import TasksTable from './TasksTable';
 
 export default function Tasks() {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -57,13 +58,14 @@ export default function Tasks() {
   }
 
   return (
-    <div className='h-full w-full max-w-416 py-2 px-2 md:p-y4 md:px-6 flex flex-col justify-between'>
+    <div className='h-full w-full max-w-416 py-2 px-2 md:p-y4 md:px-6 flex flex-col gap-6 lg:gap-10 justify-between'>
       <FilterTask
         tasks={data}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
       />
-      {JSON.stringify(data)}
+
+      <TasksTable statusFilter={statusFilter} tasks={data} />
     </div>
   );
 }
