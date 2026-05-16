@@ -11,6 +11,7 @@ export default function Tasks() {
     queryKey: ['tasks'],
     queryFn: () =>
       fetch(`http://localhost:${APP_PORT}/api/tasks`).then((res) => res.json()),
+    refetchInterval: 30000,
   });
 
   if (isPending) {

@@ -74,7 +74,7 @@ const animationClasses: Record<
 export default function Toast({
   children,
   className = '',
-  duration = 2000,
+  duration = 4000,
   position = 'bottom-right',
   onClose,
 }: ToastProps) {
