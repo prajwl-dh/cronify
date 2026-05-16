@@ -9,11 +9,8 @@ export default function App() {
   return (
     <div className='h-dvh flex flex-col items-center justify-between bg-(--background) font-mono overflow-x-hidden'>
       <Navbar />
-      {showLog !== -1 ? (
-        <Logs showLog={showLog} setShowLog={setShowLog} />
-      ) : (
-        <Tasks setShowLog={setShowLog} />
-      )}
+      <Logs showLog={showLog} setShowLog={setShowLog} />
+      <Tasks showLog={showLog} setShowLog={setShowLog} />
     </div>
   );
 }

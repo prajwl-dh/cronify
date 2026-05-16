@@ -103,7 +103,7 @@ export default function TasksTable({
           </thead>
 
           {/* Table Body */}
-          <tbody className='divide-y divide-slate-100 dark:divide-slate-800/60'>
+          <tbody>
             {tasks.length === 0 ? (
               <tr>
                 <td
@@ -145,10 +145,10 @@ export default function TasksTable({
                   key={task.id}
                   className='hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer'
                 >
-                  <td className='px-6 py-2'>
+                  <td className='px-6 py-2 border-b border-slate-100 dark:border-slate-800/60'>
                     <StatusBadge taskStatus={task.status || 'obsolete'} />
                   </td>
-                  <td className='px-6 py-2 font-semibold text-slate-700 dark:text-slate-200 font-mono'>
+                  <td className='px-6 py-2 font-semibold text-slate-700 dark:text-slate-200 font-mono border-b border-slate-100 dark:border-slate-800/60'>
                     <div
                       className='max-w-30 sm:max-w-40 md:max-w-50 truncate'
                       title={task.name}
@@ -156,7 +156,7 @@ export default function TasksTable({
                       {task.name}
                     </div>
                   </td>
-                  <td className='px-6 py-2 font-bold text-slate-800 dark:text-slate-200'>
+                  <td className='px-6 py-2 font-bold text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800/60'>
                     <div className='max-w-30 sm:max-w-45 md:max-w-55 lg:max-w-xs py-2'>
                       <code
                         className='block truncate font-bold px-2.5 py-1 text-indigo-800 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/50 rounded-lg'
@@ -166,10 +166,10 @@ export default function TasksTable({
                       </code>
                     </div>
                   </td>
-                  <td className='px-6 py-2'>
+                  <td className='px-6 py-2 border-b border-slate-100 dark:border-slate-800/60'>
                     <ScheduleBadge schedule={task.cron_string} />
                   </td>
-                  <td className='px-6 py-2 text-(--primaryText) whitespace-nowrap pr-12'>
+                  <td className='px-6 py-2 text-(--primaryText) whitespace-nowrap pr-12 border-b border-slate-100 dark:border-slate-800/60'>
                     {task.status === 'obsolete' ? (
                       <span className='italic'>Ended</span>
                     ) : (
@@ -178,7 +178,7 @@ export default function TasksTable({
                   </td>
                   <td
                     onClick={(e) => e.stopPropagation()}
-                    className='sticky right-0 z-10 px-2 py-2 bg-(--foreground) group-hover:bg-slate-50/80 dark:group-hover:bg-slate-800/50 transition-colors text-center shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.02)] dark:shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.3)] w-14'
+                    className='border-b border-slate-100 dark:border-slate-800/60 sticky right-0 z-10 px-2 py-2 bg-(--foreground) group-hover:bg-slate-50/80 dark:group-hover:bg-slate-800/50 transition-colors text-center shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.02)] dark:shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.3)] w-14'
                   >
                     <DeleteTask id={task.id || -1} />
                   </td>
