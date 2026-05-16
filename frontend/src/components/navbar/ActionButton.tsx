@@ -263,7 +263,7 @@ export default function ActionButton() {
               </div>
 
               {/* Buttons */}
-              <div className='flex items-center justify-end gap-2'>
+              <div className='flex items-center justify-end gap-2 mt-4'>
                 <Button
                   disabled={addTaskMutation.isPending}
                   title='Cancel'

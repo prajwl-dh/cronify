@@ -76,7 +76,7 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
       <div className='max-h-[calc(100dvh-300px)] flex-1 border border-(--border) rounded-2xl bg-(--foreground) shadow-sm overflow-auto'>
         <table className='w-full min-w-full text-sm text-left'>
           {/* Table Header */}
-          <thead className='text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-950 font-mono tracking-wider'>
+          <thead className='text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-950 font-mono tracking-wider border-b border-(--border)'>
             <tr>
               <th className='px-6 py-4 font-bold sticky top-0 z-20 bg-slate-50 dark:bg-slate-950 shadow-[0_1px_0_0_#e2e8f0] dark:shadow-[0_1px_0_0_#1e293b]'>
                 Status
@@ -98,7 +98,7 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
           </thead>
 
           {/* Table Body */}
-          <tbody className='divide-y divide-slate-100 dark:divide-slate-800/50'>
+          <tbody className='divide-y divide-slate-100 dark:divide-slate-800/60'>
             {tasks.length === 0 ? (
               <tr>
                 <td
@@ -170,7 +170,7 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
                       formatReadableDateTime(task.next_run)
                     )}
                   </td>
-                  <td className='sticky right-0 z-10 px-2 py-2 text-center shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.02)] dark:shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.3)] transition-colors w-14'>
+                  <td className='sticky right-0 z-10 px-2 py-2 bg-(--foreground) group-hover:bg-slate-50/80 dark:group-hover:bg-slate-800/50 transition-colors text-center shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.02)] dark:shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.3)] w-14'>
                     <DeleteTask id={task.id || -1} />
                   </td>
                 </tr>

@@ -58,7 +58,7 @@ export default function DeleteTask({ id }: { id: number }) {
         >
           <DialogPanel
             transition
-            className={`flex flex-col items-center justify-center gap-4 p-6 w-full max-w-lg rounded-2xl bg-(--foreground) border border-(--border) ease-in-out duration-500`}
+            className={`flex flex-col items-center justify-center p-6 w-full max-w-lg rounded-2xl bg-(--foreground) border border-(--border) ease-in-out duration-500`}
           >
             {/* Title */}
             <div className='flex flex-col items-center justify-between mb-2 text-(--primaryText) max-w-sm text-center'>
@@ -87,7 +87,10 @@ export default function DeleteTask({ id }: { id: number }) {
                 Cancel
               </Button>
               <Button
-                onClick={() => deleteTaskMutation.mutate(id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteTaskMutation.mutate(id);
+                }}
                 disabled={deleteTaskMutation.isPending}
                 type='submit'
                 title='Confirm'
