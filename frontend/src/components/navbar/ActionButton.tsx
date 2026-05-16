@@ -100,7 +100,7 @@ export default function ActionButton() {
         onClose={() => {}}
       >
         <div
-          className={`flex fixed inset-0 z-50 overflow-y-auto items-center justify-center bg-transparent backdrop-blur-sm p-2`}
+          className={`flex fixed inset-0 z-50 overflow-y-auto items-center justify-center bg-transparent backdrop-blur-md p-2`}
         >
           <DialogPanel
             transition
