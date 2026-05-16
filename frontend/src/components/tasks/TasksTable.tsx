@@ -76,7 +76,7 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
       <div className='max-h-[calc(100dvh-300px)] flex-1 border border-(--border) rounded-2xl bg-(--foreground) shadow-sm overflow-auto'>
         <table className='w-full min-w-full text-sm text-left'>
           {/* Table Header */}
-          <thead className='text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-950 font-sans tracking-wider'>
+          <thead className='text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-950 font-mono tracking-wider'>
             <tr>
               <th className='px-6 py-4 font-bold sticky top-0 z-20 bg-slate-50 dark:bg-slate-950 shadow-[0_1px_0_0_#e2e8f0] dark:shadow-[0_1px_0_0_#1e293b]'>
                 Status
@@ -103,7 +103,7 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
               <tr>
                 <td
                   colSpan={6}
-                  className='px-6 py-16 text-center text-slate-500 font-sans'
+                  className='px-6 py-16 text-center text-slate-500 font-mono'
                 >
                   <div className='flex flex-col items-center justify-center'>
                     <Activity className='w-12 h-12 text-slate-300 dark:text-slate-700 mb-3' />
@@ -120,7 +120,7 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
               <tr>
                 <td
                   colSpan={6}
-                  className='px-6 py-16 text-center text-slate-500 font-sans'
+                  className='px-6 py-16 text-center text-slate-500 font-mono'
                 >
                   <div className='flex flex-col items-center justify-center'>
                     <Search className='w-10 h-10 text-slate-300 dark:text-slate-700 mb-3' />
@@ -139,10 +139,10 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
                   key={task.id}
                   className='hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer'
                 >
-                  <td className='px-6 py-4'>
+                  <td className='px-6 py-2'>
                     <StatusBadge taskStatus={task.status || 'obsolete'} />
                   </td>
-                  <td className='px-6 py-4 font-semibold text-slate-700 dark:text-slate-200 font-sans'>
+                  <td className='px-6 py-2 font-semibold text-slate-700 dark:text-slate-200 font-mono'>
                     <div
                       className='max-w-30 sm:max-w-40 md:max-w-50 truncate'
                       title={task.name}
@@ -150,7 +150,7 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
                       {task.name}
                     </div>
                   </td>
-                  <td className='px-6 py-4 font-bold text-slate-800 dark:text-slate-200'>
+                  <td className='px-6 py-2 font-bold text-slate-800 dark:text-slate-200'>
                     <div className='max-w-30 sm:max-w-45 md:max-w-55 lg:max-w-xs py-2'>
                       <code
                         className='block truncate font-bold px-2.5 py-1 text-indigo-800 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/50 rounded-lg'
@@ -160,17 +160,17 @@ export default function TasksTable({ statusFilter, tasks }: TasksTableType) {
                       </code>
                     </div>
                   </td>
-                  <td className='px-6 py-4'>
+                  <td className='px-6 py-2'>
                     <ScheduleBadge schedule={task.cron_string} />
                   </td>
-                  <td className='px-6 py-4 text-slate-600 dark:text-slate-400 whitespace-nowrap pr-12'>
+                  <td className='px-6 py-2 text-(--primaryText) whitespace-nowrap pr-12'>
                     {task.status === 'obsolete' ? (
-                      <span className='text-slate-400 italic'>Ended</span>
+                      <span className='italic'>Ended</span>
                     ) : (
                       formatReadableDateTime(task.next_run)
                     )}
                   </td>
-                  <td className='sticky right-0 z-10 bg-white group-hover:bg-slate-50 dark:bg-slate-900 dark:group-hover:bg-slate-800 px-2 py-4 text-center shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.02)] dark:shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.3)] transition-colors w-14'>
+                  <td className='sticky right-0 z-10 px-2 py-2 text-center shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.02)] dark:shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.3)] transition-colors w-14'>
                     <DeleteTask id={task.id || -1} />
                   </td>
                 </tr>
