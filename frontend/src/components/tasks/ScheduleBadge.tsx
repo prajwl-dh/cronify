@@ -21,7 +21,8 @@ export default function ScheduleBadge({ schedule }: ScheduleType) {
   } else {
     return (
       <span className='flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 text-sm font-bold font-mono whitespace-nowrap'>
-        <Repeat className='w-4 h-4' /> {schedule}
+        <Repeat className='w-4 h-4' />
+        <span className='mt-1'>{schedule}</span>
       </span>
     );
   }
