@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "clean": "rimraf dist && rimraf out && rimraf ui && rimraf .*.bun-build",
-    "dev-build": "bun clean && cd frontend && bun run build && cd .. && bun build ./index.ts --compile --outfile ./dist/cronify"
+    "dev-build": "bun clean && cd frontend && bun install && bun run build && cd .. && bun build ./index.ts --compile --outfile ./dist/cronify"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.0",
