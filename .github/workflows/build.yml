@@ -22,18 +22,18 @@ jobs:
           # =====================
           # MACOS
           # =====================
-          - os: macos-14
+          - os: macos-15
             name: macos-arm64
             outfile: cronify-macos-arm64
 
-          - os: macos-13
+          - os: macos-15-intel
             name: macos-x64
             outfile: cronify-macos-x64
 
           # =====================
           # WINDOWS
           # =====================
-          - os: windows-2022
+          - os: windows-2025
             name: windows-x64
             outfile: cronify-windows-x64.exe
 
