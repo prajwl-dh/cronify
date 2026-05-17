@@ -11,6 +11,15 @@ import { logger } from '../utils/logger';
  */
 export function installDaemon() {
   const os = process.platform;
+
+  if (isAlreadyInstalled(os)) {
+    logger.info('✅ Cronify is already installed and running.');
+    logger.info(
+      `\n🌐 Cronify dashboard available at http://localhost:${initConfig().port}`,
+    );
+    return;
+  }
+
   const execPath = process.execPath;
   const home = homedir();
 
@@ -164,5 +173,39 @@ export function installDaemon() {
     );
   } catch (error) {
     logger.error('❌ Installation failed:', error);
+  }
+}
+
+/**
+ * Checks if cronify background daemon is already installed
+ */
+function isAlreadyInstalled(os: string): boolean {
+  try {
+    if (os === 'darwin') {
+      const result = spawnSync('launchctl', ['list'], { encoding: 'utf-8' });
+      return result.stdout.includes('com.cronify.daemon');
+    }
+
+    if (os === 'linux') {
+      const result = spawnSync(
+        'systemctl',
+        ['--user', 'is-active', 'cronify.service'],
+        {
+          encoding: 'utf-8',
+        },
+      );
+      return result.stdout.trim() === 'active';
+    }
+
+    if (os === 'win32') {
+      const result = spawnSync('schtasks', ['/query', '/tn', 'CronifyDaemon'], {
+        encoding: 'utf-8',
+      });
+      return result.status === 0;
+    }
+
+    return false;
+  } catch {
+    return false;
   }
 }
