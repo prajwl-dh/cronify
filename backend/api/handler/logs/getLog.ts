@@ -13,7 +13,11 @@ export async function getLog(url: URL, db: Database) {
   logger.info('GET /api/logs/:task_id endpoint called\n');
 
   // Fetch all logs linked to the provided task ID
-  const logs = db.query(`SELECT * FROM logs WHERE task_id = ?`).all(task_id);
+  const logs = db
+    .query(
+      `SELECT * FROM logs WHERE task_id = ? ORDER BY executed_at DESC LIMIT 200`,
+    )
+    .all(task_id);
 
   return new Response(JSON.stringify(logs), {
     headers: { 'Content-Type': 'application/json' },
