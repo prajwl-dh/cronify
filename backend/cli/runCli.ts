@@ -74,22 +74,34 @@ export async function runCli(args: string[]) {
           Cronify CLI Usage:
 
           cronify add --cmd "<command>" --schedule "<schedule>"
-          cronify delete --id <id>
-          cronify list
-          cronify logs
-          cronify log --id <task_id>
-          cronify change --port <port>
+            Adds a new scheduled task
 
-          cronify install
+          cronify delete --id <id>
+            Deletes a task with the specified id
+
+          cronify list
+            Lists all scheduled tasks
+
+          cronify logs
+            Lists logs for all tasks
+
+          cronify log --id <task_id>
+            Shows logs for a specific task by id
+
+          cronify change --port <port>
+            Changes the running port number to a new port
+
+          cronify start
+            Starts the Cronify background daemon (if stopped)
+
+          cronify stop
+            Stops the Cronify background daemon
 
           cronify uninstall --confirm
             Removes background daemon and binary but preserves user data
 
           cronify uninstall --confirm --full
             Removes Cronify INCLUDING all user data, logs, and configs
-
-          cronify start
-          cronify stop
         `);
     }
   } catch (error: any) {
