@@ -6,7 +6,13 @@ import { APP_PORT } from '../../config/config';
 import { useToast } from '../../store/toast/useToast';
 import Button from '../common/Button';
 
-export default function DeleteTask({ id }: { id: number }) {
+export default function DeleteTask({
+  id,
+  setShowLog,
+}: {
+  id: number;
+  setShowLog: React.Dispatch<React.SetStateAction<number>>;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { toast } = useToast();
@@ -27,6 +33,7 @@ export default function DeleteTask({ id }: { id: number }) {
     onSuccess: () => {
       queryClient.invalidateQueries();
       toast.success('Task deleted successfully');
+      setShowLog(-1);
       setIsOpen(false);
     },
     onError: () => {

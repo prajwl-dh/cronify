@@ -180,7 +180,7 @@ export default function TasksTable({
                     onClick={(e) => e.stopPropagation()}
                     className='border-b border-slate-100 dark:border-slate-800/60 sticky right-0 z-10 px-2 py-2 bg-(--foreground) group-hover:bg-slate-50/80 dark:group-hover:bg-slate-800/50 transition-colors text-center shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.02)] dark:shadow-[-8px_0_10px_-5px_rgba(0,0,0,0.3)] w-14'
                   >
-                    <DeleteTask id={task.id || -1} />
+                    <DeleteTask id={task.id || -1} setShowLog={setShowLog} />
                   </td>
                 </tr>
               ))
