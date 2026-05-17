@@ -9,7 +9,7 @@ import { logger } from '../utils/logger';
  * Fully uninstalls the Cronify daemon from the system,
  * including service hooks, files, and binary cleanup.
  */
-export async function uninstallDaemon() {
+export async function uninstallDaemon(values: any) {
   const config = initConfig();
   const os = process.platform;
   const execPath = process.execPath;
@@ -97,10 +97,16 @@ export async function uninstallDaemon() {
     }
   }
 
-  // Remove Cronify data directory
-  logger.info('🗑️ Deleting database, logs, and configurations...');
+  // Decide whether user data should be deleted
+  const shouldDeleteUserData = !!values.full;
 
-  if (existsSync(cronifyDir)) {
+  logger.info(
+    shouldDeleteUserData
+      ? '🗑️ Deleting ALL user data...'
+      : '📦 Preserving user data (~/.cronify)...',
+  );
+
+  if (shouldDeleteUserData && existsSync(cronifyDir)) {
     rmSync(cronifyDir, { recursive: true, force: true });
   }
 

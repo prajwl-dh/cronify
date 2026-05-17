@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { initConfig } from '../config/config';
 import { logger } from '../utils/logger';
 
 /**
@@ -155,7 +156,11 @@ export function installDaemon() {
     }
 
     logger.info(
-      '🎉 Cronify installation complete! The daemon is now running in the background.',
+      '🎉 Cronify installation complete! The daemon is now running in the background.\n',
+    );
+
+    logger.info(
+      `\n🌐 Cronify dashboard available at http://localhost:${initConfig().port}`,
     );
   } catch (error) {
     logger.error('❌ Installation failed:', error);

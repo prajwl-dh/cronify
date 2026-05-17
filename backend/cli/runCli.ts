@@ -26,6 +26,7 @@ export async function runCli(args: string[]) {
       id: { type: 'string', short: 'i' },
       port: { type: 'string', short: 'p' },
       confirm: { type: 'boolean' },
+      full: { type: 'boolean' },
     },
     allowPositionals: true,
     strict: false,
@@ -71,14 +72,22 @@ export async function runCli(args: string[]) {
         // Fallback help output when command is unknown
         console.log(`
           Cronify CLI Usage:
+
           cronify add --cmd "<command>" --schedule "<schedule>"
           cronify delete --id <id>
           cronify list
           cronify logs
           cronify log --id <task_id>
           cronify change --port <port>
+
           cronify install
+
           cronify uninstall --confirm
+            Removes background daemon and binary but preserves user data
+
+          cronify uninstall --confirm --full
+            Removes Cronify INCLUDING all user data, logs, and configs
+
           cronify start
           cronify stop
         `);

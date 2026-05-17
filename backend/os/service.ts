@@ -39,7 +39,10 @@ export function startDaemonService() {
       }
     }
 
-    logger.info('✅ OS Service started.');
+    logger.info('✅ OS Service started.\n');
+    logger.info(
+      `\n🌐 Cronify dashboard available at http://localhost:${initConfig().port}`,
+    );
   } catch (error) {
     logger.error('❌ Failed to start OS service. Is it installed?', error);
   }
