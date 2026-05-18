@@ -29,8 +29,6 @@ export function initConfig(): CronifyConfig {
 
   // Generate config.json using default values
   if (!existsSync(configPath)) {
-    logger.info('⚙️ Creating default config.json...');
-
     writeFileSync(configPath, JSON.stringify(DEFAULT_CONFIG, null, 2), 'utf-8');
 
     return DEFAULT_CONFIG;

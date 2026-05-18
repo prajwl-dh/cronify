@@ -1,6 +1,8 @@
 import { Database } from 'bun:sqlite';
 import indexHtml from '../../ui/index.html' with { type: 'text' };
 import { logger } from '../utils/logger';
+import { getHealth } from './handler/common/getHealth';
+import { getAppVersion } from './handler/common/getVersion';
 import { shutdownDaemon } from './handler/common/shutdownDaemon';
 import { getLog } from './handler/logs/getLog';
 import { getLogs } from './handler/logs/getLogs';
@@ -75,6 +77,16 @@ export function startServer(db: Database, port: number) {
         // POST /api/shutdown
         if (url.pathname === '/api/shutdown' && req.method === 'POST') {
           return withCors(await shutdownDaemon());
+        }
+
+        // Get /api/version
+        if (url.pathname === '/api/version' && req.method === 'GET') {
+          return withCors(await getAppVersion());
+        }
+
+        // Get /api/health
+        if (url.pathname === '/api/health' && req.method === 'GET') {
+          return withCors(await getHealth());
         }
 
         return withCors(new Response('Not Found', { status: 404 }));

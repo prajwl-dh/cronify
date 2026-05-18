@@ -3,6 +3,7 @@ import { parseArgs } from 'util';
 import { addCommand } from './commands/add';
 import { changeCommand } from './commands/change';
 import { deleteCommand } from './commands/delete';
+import { healthCommand } from './commands/health';
 import { installCommand } from './commands/install';
 import { listCommand } from './commands/list';
 import { logCommand } from './commands/log';
@@ -10,6 +11,7 @@ import { logsCommand } from './commands/logs';
 import { startCommand } from './commands/start';
 import { stopCommand } from './commands/stop';
 import { uninstallCommand } from './commands/uninstall';
+import { versionCommand } from './commands/version';
 
 /**
  * CLI entry handler
@@ -68,6 +70,12 @@ export async function runCli(args: string[]) {
       case 'change':
         return changeCommand(values);
 
+      case 'health':
+        return await healthCommand();
+
+      case 'version':
+        return versionCommand();
+
       default:
         // Fallback help output when command is unknown
         console.log(`
@@ -90,6 +98,12 @@ export async function runCli(args: string[]) {
 
           cronify change --port <port>
             Changes the running port number to a new port
+
+          cronify health
+            Gets the health status of the daemon
+
+          cronify version
+            Returns the current version of the cronify binary
 
           cronify start
             Starts the Cronify background daemon (if stopped)
