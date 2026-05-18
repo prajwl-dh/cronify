@@ -71,11 +71,7 @@ jobs:
           bun run build
 
       - name: Build binary
-        run: |
-          mkdir -p dist
-          bun build ./index.ts \
-            --compile \
-            --outfile ./dist/${{ matrix.binary_name }}
+        run: bun build ./index.ts --compile --outfile ./dist/${{ matrix.binary_name }}
 
       # =====================
       # ZIP (linux + macos)
