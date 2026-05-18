@@ -1,14 +1,14 @@
 {
   "name": "cronify",
+  "version": "1.0.0",
   "module": "index.ts",
   "type": "module",
   "private": true,
   "scripts": {
     "clean": "rimraf dist && rimraf out && rimraf ui && rimraf .*.bun-build",
-    "dev-build": "bun clean && cd frontend && bun install && bun run build && cd .. && bun build ./index.ts --compile --outfile ./dist/cronify"
+    "dev-build": "bun clean && cd frontend && bun install && bun run build && cd .. && bun install && bun build ./index.ts --compile --outfile ./dist/cronify"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.0",
     "@types/bun": "latest",
     "rimraf": "^6.1.3"
   },
