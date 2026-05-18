@@ -4,7 +4,11 @@ import { APP_PORT } from '../../config/config';
 import ActionButton from './ActionButton';
 import ThemePicker from './ThemePicker';
 
-export default function Navbar() {
+export default function Navbar({
+  setShowLog,
+}: {
+  setShowLog: React.Dispatch<React.SetStateAction<number>>;
+}) {
   const [appVersion, setAppVersion] = useState('');
 
   useEffect(() => {
@@ -45,7 +49,7 @@ export default function Navbar() {
         {/* Theme picker and action button */}
         <div className='flex items-center gap-2 md:gap-4 text-(--primaryText)'>
           <ThemePicker />
-          <ActionButton />
+          <ActionButton setShowLog={setShowLog} />
         </div>
       </div>
     </div>

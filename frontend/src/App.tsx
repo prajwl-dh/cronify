@@ -14,7 +14,7 @@ export default function App() {
     queryKey: ['tasks'],
     queryFn: () =>
       fetch(`http://localhost:${APP_PORT}/api/tasks`).then((res) => res.json()),
-    refetchInterval: 30000,
+    refetchInterval: 10000,
   });
 
   if (isPending) {
@@ -27,7 +27,7 @@ export default function App() {
 
   return (
     <div className='h-dvh flex flex-col items-center justify-between bg-(--background) font-mono overflow-x-hidden'>
-      <Navbar />
+      <Navbar setShowLog={setShowLog} />
       <Logs showLog={showLog} setShowLog={setShowLog} tasks={data} />
       <Tasks showLog={showLog} setShowLog={setShowLog} tasks={data} />
     </div>

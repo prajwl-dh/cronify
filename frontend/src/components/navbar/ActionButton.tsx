@@ -9,7 +9,11 @@ import { formatDateTimeLocal } from '../../utils/converter';
 import cronValidator from '../../utils/validator';
 import Button from '../common/Button';
 
-export default function ActionButton() {
+export default function ActionButton({
+  setShowLog,
+}: {
+  setShowLog: React.Dispatch<React.SetStateAction<number>>;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const [name, setName] = useState('');
@@ -35,6 +39,7 @@ export default function ActionButton() {
     onSuccess: () => {
       queryClient.invalidateQueries();
       toast.success('Task added successfully');
+      setShowLog(-1);
       setIsOpen(false);
     },
     onError: () => {
