@@ -15,7 +15,7 @@ export default function ExecutionLogs({ task }: { task: Task }) {
       fetch(`http://localhost:${APP_PORT}/api/logs/${task?.id}`).then((res) =>
         res.json(),
       ),
-    refetchInterval: 30000,
+    refetchInterval: 10000,
   });
 
   if (!data) {
