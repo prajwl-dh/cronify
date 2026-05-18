@@ -1,7 +1,16 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, rmSync, unlinkSync } from 'node:fs';
+
+import {
+  existsSync,
+  readFileSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
+
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+
 import { initConfig } from '../config/config';
 import { logger } from '../utils/logger';
 
@@ -11,15 +20,19 @@ import { logger } from '../utils/logger';
  */
 export async function uninstallDaemon(values: any) {
   const config = initConfig();
+
   const os = process.platform;
   const execPath = process.execPath;
 
   const cronifyDir = join(homedir(), '.cronify');
+
   const vbsPath = join(cronifyDir, 'run_daemon.vbs');
 
   logger.info(`Removing Cronify system hooks for OS: ${os}`);
 
-  // macOS launchd cleanup
+  /**
+   * macOS launchd cleanup
+   */
   if (os === 'darwin') {
     const plistPath = join(
       homedir(),
@@ -30,12 +43,13 @@ export async function uninstallDaemon(values: any) {
 
     if (existsSync(plistPath)) {
       spawnSync('launchctl', ['unload', plistPath]);
+
       unlinkSync(plistPath);
     }
-  }
-
-  // Linux systemd cleanup
-  else if (os === 'linux') {
+  } else if (os === 'linux') {
+    /**
+     * Linux systemd cleanup
+     */
     const servicePath = join(
       homedir(),
       '.config',
@@ -46,14 +60,18 @@ export async function uninstallDaemon(values: any) {
 
     if (existsSync(servicePath)) {
       spawnSync('systemctl', ['--user', 'disable', 'cronify.service']);
+
       unlinkSync(servicePath);
+
       spawnSync('systemctl', ['--user', 'daemon-reload']);
     }
-  }
-
-  // Windows scheduled task cleanup
-  else if (os === 'win32') {
-    // First check if admin privilege is available
+  } else if (os === 'win32') {
+    /**
+     * Windows scheduled task cleanup
+     */
+    /**
+     * Check for admin privileges
+     */
     if (!isWindowsAdmin()) {
       logger.error(
         '❌ Administrator privileges are required to uninstall Cronify.',
@@ -68,36 +86,63 @@ export async function uninstallDaemon(values: any) {
 
     logger.info('🛑 Stopping daemon before uninstall...');
 
+    /**
+     * Attempt graceful shutdown
+     */
     try {
-      // Attempt graceful shutdown before removing anything
       await fetch(`http://127.0.0.1:${config.port}/api/shutdown`, {
         method: 'POST',
       });
 
       await new Promise((r) => setTimeout(r, 2000));
+
+      logger.info('✅ Shutdown request sent');
     } catch {}
 
-    // Remove scheduled task
+    /**
+     * Remove scheduled task
+     */
     spawnSync('schtasks', ['/delete', '/tn', 'CronifyDaemon', '/f'], {
       stdio: 'ignore',
     });
 
-    spawnSync('schtasks', ['/delete', '/tn', 'CronifyDaemon', '/f'], {
-      encoding: 'utf-8',
+    /**
+     * Kill daemon PID only
+     */
+    const pidFile = join(cronifyDir, 'daemon.pid');
+
+    if (existsSync(pidFile)) {
+      try {
+        const pid = readFileSync(pidFile, 'utf-8').trim();
+
+        if (pid) {
+          spawnSync('taskkill', ['/F', '/PID', pid], {
+            stdio: 'ignore',
+          });
+        }
+
+        unlinkSync(pidFile);
+      } catch {}
+    }
+
+    /**
+     * Kill lingering launcher
+     */
+    spawnSync('taskkill', ['/F', '/IM', 'wscript.exe'], {
+      stdio: 'ignore',
     });
 
-    // Kill any lingering processes
-    spawnSync('taskkill', ['/F', '/IM', 'bun.exe'], { stdio: 'ignore' });
-    spawnSync('taskkill', ['/F', '/IM', 'node.exe'], { stdio: 'ignore' });
-    spawnSync('taskkill', ['/F', '/IM', 'wscript.exe'], { stdio: 'ignore' });
-
-    // Remove VBS launcher
+    /**
+     * Remove VBS launcher
+     */
     if (existsSync(vbsPath)) {
       unlinkSync(vbsPath);
     }
   }
 
-  // Decide whether user data should be deleted
+  /**
+   * Decide whether user data should be deleted
+   */
   const shouldDeleteUserData = !!values.full;
 
   logger.info(
@@ -106,18 +151,42 @@ export async function uninstallDaemon(values: any) {
       : '📦 Preserving user data (~/.cronify)...',
   );
 
-  if (shouldDeleteUserData && existsSync(cronifyDir)) {
-    rmSync(cronifyDir, { recursive: true, force: true });
-  }
-
   console.info('🧨 Self-destructing binary file...');
 
-  // Remove installed binary depending on OS
+  /**
+   * Windows self-delete
+   */
   if (os === 'win32') {
-    // Delay deletion because Windows locks executing binaries
-    const command = `timeout /t 2 /nobreak > NUL & del "${execPath}"`;
+    const cleanupScript = `
+@echo off
 
-    const child = spawn('cmd.exe', ['/c', command], {
+timeout /t 3 /nobreak > NUL
+
+:retry
+del "${execPath}" > NUL 2>&1
+
+if exist "${execPath}" (
+  timeout /t 1 /nobreak > NUL
+  goto retry
+)
+
+${shouldDeleteUserData ? `rmdir /s /q "${cronifyDir}" > NUL 2>&1` : ''}
+
+del "%~f0"
+`;
+
+    /**
+     * Store cleanup script in TEMP
+     * so it survives ~/.cronify deletion
+     */
+    const batPath = join(
+      process.env.TEMP || process.cwd(),
+      'cronify_cleanup.bat',
+    );
+
+    writeFileSync(batPath, cleanupScript);
+
+    const child = spawn('cmd.exe', ['/c', batPath], {
       detached: true,
       stdio: 'ignore',
       windowsHide: true,
@@ -125,7 +194,22 @@ export async function uninstallDaemon(values: any) {
 
     child.unref();
   } else {
-    // Unix systems can remove binary immediately
+    /**
+     * Unix cleanup
+     */
+    /**
+     * Delete user data if requested
+     */
+    if (shouldDeleteUserData && existsSync(cronifyDir)) {
+      rmSync(cronifyDir, {
+        recursive: true,
+        force: true,
+      });
+    }
+
+    /**
+     * Remove binary
+     */
     if (existsSync(execPath)) {
       unlinkSync(execPath);
     }
