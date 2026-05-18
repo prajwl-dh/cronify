@@ -1,5 +1,10 @@
 # Cronify
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/prajwl-dh/cronify/main/assets/tasks.png" alt="Tasks" width="49%" />
+  <img src="https://raw.githubusercontent.com/prajwl-dh/cronify/main/assets/logs.png" alt="Logs" width="49%" />
+</p>
+
 Cronify is a modern standalone task scheduler built with Bun for Windows, macOS, and Linux.
 
 It runs as a lightweight background daemon with a built-in Web UI, persistent execution logging, and a fast CLI interface all bundled into a single compiled binary with zero external dependencies after installation.
@@ -13,7 +18,7 @@ It runs as a lightweight background daemon with a built-in Web UI, persistent ex
   - Windows (x64)
 
 - Background daemon scheduler
-- Built-in Web UI
+- CLI commands as well as built-in Web UI
 - SQLite-based persistent storage
 - Persistent stdout/stderr logging for all executions
 - Auto-start on system boot/login
@@ -222,4 +227,12 @@ Removes:
 
 ```bash
 cronify uninstall --confirm --full
+```
+
+## Help
+
+Displays all available Cronify commands and usage information.
+
+```bash
+cronify help
 ```
