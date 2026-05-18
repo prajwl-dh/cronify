@@ -1,10 +1,9 @@
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import {
   copyFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
-  renameSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -12,6 +11,7 @@ import {
 import { arch, homedir, platform } from 'node:os';
 import { join } from 'node:path';
 import { logger } from '../utils/logger';
+import { startDaemonService, stopDaemonService } from './service';
 
 const REPO = 'prajwl-dh/cronify';
 const LATEST_API = `https://api.github.com/repos/${REPO}/releases/latest`;
@@ -51,20 +51,28 @@ export async function updateCronify() {
     const backupPath = `${installPath}.old`;
 
     logger.info('🛑 Stopping Cronify...');
-    runCli(['stop']);
+    await stopDaemonService();
 
     logger.info('📦 Creating backup...');
     safeBackup(installPath, backupPath);
 
     try {
       logger.info('⬆️ Installing update...');
-      safeReplace(binaryPath, installPath);
 
-      logger.info('🚀 Restarting Cronify...');
-      runCli(['start']);
+      if (process.platform === 'win32') {
+        await runWindowsUpdater(binaryPath, installPath);
 
-      logger.info('🎉 Update successful. Cleaning backup...');
-      rmSync(backupPath, { force: true });
+        logger.info('🚪 Exiting current process for Windows update...');
+        process.exit(0);
+      } else {
+        safeReplace(binaryPath, installPath);
+
+        logger.info('🚀 Restarting Cronify...');
+        startDaemonService();
+
+        logger.info('🎉 Update successful. Cleaning backup...');
+        rmSync(backupPath, { force: true });
+      }
     } catch (err) {
       logger.error('❌ Update failed, rolling back...');
 
@@ -72,21 +80,13 @@ export async function updateCronify() {
         copyFileSync(backupPath, installPath);
       }
 
-      runCli(['start']);
+      startDaemonService();
 
       throw err;
     }
   } catch (err) {
     logger.error('❌ Update error:', err);
   }
-}
-
-/* ------------------------- CLI ------------------------- */
-
-function runCli(args: string[]) {
-  spawnSync(process.execPath, args, {
-    stdio: 'inherit',
-  });
 }
 
 /* ------------------------- VERSION ------------------------- */
@@ -238,10 +238,7 @@ function findBinary(dir: string): string | null {
 /* ------------------------- SAFE REPLACE ------------------------- */
 
 function safeReplace(src: string, dest: string) {
-  const temp = `${dest}.new`;
-
-  copyFileSync(src, temp);
-  renameSync(temp, dest);
+  copyFileSync(src, dest);
 }
 
 /* ------------------------- BACKUP ------------------------- */
@@ -250,4 +247,46 @@ function safeBackup(src: string, backup: string) {
   if (existsSync(src)) {
     copyFileSync(src, backup);
   }
+}
+
+/* ------------------------- Window Specific Updater ------------------------- */
+async function runWindowsUpdater(newBinary: string, installPath: string) {
+  const cronifyDir = join(homedir(), '.cronify');
+
+  const batPath = join(cronifyDir, 'updater.bat');
+
+  // Stop scheduled task first
+  spawnSync('schtasks', ['/end', '/tn', 'CronifyDaemon'], {
+    stdio: 'ignore',
+  });
+
+  const bat = `
+    @echo off
+    setlocal
+
+    echo Waiting for Cronify to exit...
+    timeout /t 3 /nobreak >nul
+
+    echo Replacing executable...
+    copy /Y "${newBinary}" "${installPath}"
+
+    if errorlevel 1 (
+        echo Failed to replace executable
+        exit /b 1
+    )
+
+    echo Restarting scheduled task...
+    schtasks /run /tn "CronifyDaemon"
+
+    echo Cleaning up...
+    del "%~f0"
+    `;
+
+  writeFileSync(batPath, bat, 'utf-8');
+
+  // Launch detached updater
+  spawn('cmd.exe', ['/c', batPath], {
+    detached: true,
+    stdio: 'ignore',
+  }).unref();
 }
