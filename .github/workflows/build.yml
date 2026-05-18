@@ -53,7 +53,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Bun
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -74,7 +74,7 @@ jobs:
         run: bun build ./index.ts --compile --outfile ./dist/${{ matrix.binary_name }}
 
       # =====================
-      # ZIP (linux + macos)
+      # ZIP (Unix)
       # =====================
       - name: Create zip archive (Unix)
         if: runner.os != 'Windows'
@@ -83,7 +83,7 @@ jobs:
           zip ${{ matrix.archive_name }} ${{ matrix.binary_name }}
 
       # =====================
-      # ZIP (windows)
+      # ZIP (Windows)
       # =====================
       - name: Create zip archive (Windows)
         if: runner.os == 'Windows'
@@ -93,8 +93,29 @@ jobs:
             -Path dist/${{ matrix.binary_name }} `
             -DestinationPath dist/${{ matrix.archive_name }}
 
-      - name: Upload release asset
+      - name: Upload artifact for release job
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/${{ matrix.archive_name }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Flatten artifacts
+        run: |
+          mkdir -p release
+          find dist -type f -name "*.zip" -exec mv {} release/ \;
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/${{ matrix.archive_name }}
+          files: release/*.zip
           generate_release_notes: true
