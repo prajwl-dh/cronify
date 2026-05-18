@@ -78,7 +78,7 @@ if (-not $FoundExe) {
 # -----------------------------
 # Install directory
 # -----------------------------
-$InstallDir = "$env:ProgramFiles\Cronify"
+$InstallDir = "$env:LOCALAPPDATA\Cronify"
 
 if (-not (Test-Path $InstallDir)) {
     New-Item -ItemType Directory -Path $InstallDir | Out-Null
@@ -103,14 +103,14 @@ Remove-Item $ExtractDir -Recurse -Force
 # -----------------------------
 # PATH update
 # -----------------------------
-$MachinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+$UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
 
-if ($MachinePath -notlike "*$InstallDir*") {
-    Write-Host "🌐 Adding to PATH..."
+if ($UserPath -notlike "*$InstallDir*") {
+    Write-Host "🌐 Adding to USER PATH..."
     [Environment]::SetEnvironmentVariable(
         "Path",
-        "$MachinePath;$InstallDir",
-        "Machine"
+        "$UserPath;$InstallDir",
+        "User"
     )
 }
 
