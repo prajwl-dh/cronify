@@ -139,3 +139,6 @@ if ($exitCode -ne 0) {
 }
 
 Write-Host "✅ Installation complete"
+
+# Run cronify help to display CLI usage
+& "$ExePath" help

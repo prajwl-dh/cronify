@@ -21,7 +21,7 @@ export async function addTask(req: Request, db: Database) {
     );
 
     // Validate required fields
-    if (!command || !schedule) {
+    if (!command || !schedule || !name) {
       logger.error(
         `POST /api/tasks endpoint. Missing name, command or schedule.\n`,
       );

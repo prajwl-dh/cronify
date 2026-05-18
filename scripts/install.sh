@@ -81,3 +81,6 @@ export PATH="$INSTALL_DIR:$PATH"
 # 7. Initialize Daemon
 echo "⚙️ Initializing daemon..."
 "$INSTALL_DIR/cronify" install
+
+#8. Run cronify help to display CLI usage
+"$INSTALL_DIR/cronify" help

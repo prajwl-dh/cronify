@@ -41,6 +41,11 @@ export async function runCli(args: string[]) {
   try {
     // Route command to corresponding handler
     switch (command) {
+      case 'web': {
+        startCommand();
+        return;
+      }
+
       case 'add':
         return await addCommand(values);
 
@@ -85,7 +90,10 @@ export async function runCli(args: string[]) {
         console.log(`
           Cronify CLI Usage:
 
-          cronify add --cmd "<command>" --schedule "<schedule>"
+          cronify web
+            Returns the URL for cronify web dashboard
+
+          cronify add --name "<task name>" --cmd "<command>" --schedule "<schedule>"
             Adds a new scheduled task
 
           cronify delete --id <id>

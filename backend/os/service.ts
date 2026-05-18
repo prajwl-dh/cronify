@@ -10,8 +10,6 @@ import { logger } from '../utils/logger';
 export function startDaemonService() {
   const os = process.platform;
 
-  logger.info('🚀 Telling the Operating System to start Cronify...');
-
   try {
     // macOS launchd service
     if (os === 'darwin') {
