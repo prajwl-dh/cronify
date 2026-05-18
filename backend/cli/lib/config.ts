@@ -6,7 +6,7 @@ import { initConfig } from '../../config/config';
  */
 export function getApiUrl() {
   const config = initConfig();
-  return `http://localhost:${config.port}`;
+  return `http://127.0.0.1:${config.port}`;
 }
 
 /**

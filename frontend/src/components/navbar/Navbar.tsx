@@ -14,7 +14,7 @@ export default function Navbar({
   useEffect(() => {
     async function getAppVersion() {
       try {
-        const res = await fetch(`http://localhost:${APP_PORT}/api/version`);
+        const res = await fetch(`http://127.0.0.1:${APP_PORT}/api/version`);
         const data = (await res.json()) as { version: string };
 
         setAppVersion(data.version);

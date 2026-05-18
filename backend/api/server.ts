@@ -109,5 +109,5 @@ export function startServer(db: Database, port: number) {
     }
   }
 
-  logger.info(`🌐 Cronify API now listening on http://localhost:${port}\n`);
+  logger.info(`🌐 Cronify API now listening on http://127.0.0.1:${port}\n`);
 }

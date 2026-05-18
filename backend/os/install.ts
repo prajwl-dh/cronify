@@ -15,7 +15,7 @@ export function installDaemon() {
   if (isAlreadyInstalled(os)) {
     logger.info('✅ Cronify is already installed and running.');
     logger.info(
-      `\n🌐 Cronify dashboard available at http://localhost:${initConfig().port}`,
+      `\n🌐 Cronify dashboard available at http://127.0.0.1:${initConfig().port}`,
     );
     return;
   }
@@ -169,7 +169,7 @@ export function installDaemon() {
     );
 
     logger.info(
-      `\n🌐 Cronify dashboard available at http://localhost:${initConfig().port}`,
+      `\n🌐 Cronify dashboard available at http://127.0.0.1:${initConfig().port}`,
     );
   } catch (error) {
     logger.error('❌ Installation failed:', error);

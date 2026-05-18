@@ -21,7 +21,7 @@ export default function DeleteTask({
   const deleteTaskMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await fetch(
-        `http://localhost:${APP_PORT}/api/tasks/${id}`,
+        `http://127.0.0.1:${APP_PORT}/api/tasks/${id}`,
         {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },

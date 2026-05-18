@@ -12,7 +12,7 @@ export default function ExecutionLogs({ task }: { task: Task }) {
   const { data } = useQuery<Log[]>({
     queryKey: ['logs'],
     queryFn: () =>
-      fetch(`http://localhost:${APP_PORT}/api/logs/${task?.id}`).then((res) =>
+      fetch(`http://127.0.0.1:${APP_PORT}/api/logs/${task?.id}`).then((res) =>
         res.json(),
       ),
     refetchInterval: 10000,

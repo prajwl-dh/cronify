@@ -28,7 +28,7 @@ export default function ActionButton({
 
   const addTaskMutation = useMutation({
     mutationFn: async (payload: Task) => {
-      const response = await fetch(`http://localhost:${APP_PORT}/api/tasks`, {
+      const response = await fetch(`http://127.0.0.1:${APP_PORT}/api/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

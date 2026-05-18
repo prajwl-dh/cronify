@@ -13,7 +13,7 @@ export default function App() {
   const { isPending, error, data } = useQuery({
     queryKey: ['tasks'],
     queryFn: () =>
-      fetch(`http://localhost:${APP_PORT}/api/tasks`).then((res) => res.json()),
+      fetch(`http://127.0.0.1:${APP_PORT}/api/tasks`).then((res) => res.json()),
     refetchInterval: 10000,
   });
 
