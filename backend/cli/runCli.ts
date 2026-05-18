@@ -1,5 +1,6 @@
 import { parseArgs } from 'util';
 
+import { updateCronify } from '../os/update';
 import { addCommand } from './commands/add';
 import { changeCommand } from './commands/change';
 import { deleteCommand } from './commands/delete';
@@ -76,6 +77,9 @@ export async function runCli(args: string[]) {
       case 'version':
         return versionCommand();
 
+      case 'update':
+        return updateCronify();
+
       default:
         // Fallback help output when command is unknown
         console.log(`
@@ -116,6 +120,9 @@ export async function runCli(args: string[]) {
 
           cronify uninstall --confirm --full
             Removes Cronify INCLUDING all user data, logs, and configs
+
+          cronify update
+            Updates cronify to the latest version from GitHub release
         `);
     }
   } catch (error: any) {
