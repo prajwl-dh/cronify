@@ -121,9 +121,13 @@ export async function runCli(args: string[]) {
   } catch (error: any) {
     // Handle connection-level failures separately from runtime errors
     if (error?.cause?.code === 'ECONNREFUSED') {
-      console.error('Could not connect to daemon. Is it running?');
+      console.error(
+        'Looks like the daemon is not running. Start it first by running: cronify start',
+      );
     } else {
-      console.error(`Error: ${error.message}`);
+      console.error(
+        `Error message: ${error.message}\n\nLooks like the daemon is not running. Start it first by running: cronify start\n`,
+      );
     }
   }
 }
