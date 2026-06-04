@@ -1,4 +1,4 @@
-import { startDaemonService } from '../../os/service';
+import { startDaemonService } from "../../os/service";
 
 /**
  * CLI command: start

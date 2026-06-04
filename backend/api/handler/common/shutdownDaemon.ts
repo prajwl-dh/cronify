@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger';
+import { logger } from "../../../utils/logger";
 
 /**
  * Handles POST /api/shutdown
@@ -6,15 +6,15 @@ import { logger } from '../../../utils/logger';
  * after sending a success response to the client.
  */
 export async function shutdownDaemon() {
-  logger.warn('🛑 Received shutdown command from CLI. Exiting...');
+  logger.warn("🛑 Received shutdown command from CLI. Exiting...");
 
   // Delay shutdown slightly to allow the response to be sent
   setTimeout(() => process.exit(0), 500);
 
   return new Response(
-    JSON.stringify({ message: 'Daemon shut down gracefully' }),
+    JSON.stringify({ message: "Daemon shut down gracefully" }),
     {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     },
   );
 }

@@ -1,4 +1,4 @@
-import { CronExpressionParser } from 'cron-parser';
+import { CronExpressionParser } from "cron-parser";
 
 export default function cronValidator(str: string) {
   try {
@@ -9,8 +9,8 @@ export default function cronValidator(str: string) {
     }
 
     CronExpressionParser.parse(str);
-    return '';
+    return "";
   } catch {
-    return 'error';
+    return "error";
   }
 }

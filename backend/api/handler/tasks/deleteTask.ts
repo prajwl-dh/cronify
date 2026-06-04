@@ -1,12 +1,12 @@
-import { Database } from 'bun:sqlite';
-import { logger } from '../../../utils/logger';
+import { Database } from "bun:sqlite";
+import { logger } from "../../../utils/logger";
 
 /**
  * Handles DELETE /api/tasks/:id
  * Deletes a task from the database using the provided task ID.
  */
 export async function deleteTask(url: URL, db: Database) {
-  const param = url.pathname.split('/').pop();
+  const param = url.pathname.split("/").pop();
   const id = Number(param);
 
   logger.info(`DELETE /api/tasks/{:id} endpoint called with id: ${param}`);
@@ -17,7 +17,7 @@ export async function deleteTask(url: URL, db: Database) {
       `DELETE /api/tasks/{:id} endpoint. Invalid task id: ${param}\n`,
     );
 
-    return new Response('Invalid task id', { status: 400 });
+    return new Response("Invalid task id", { status: 400 });
   }
 
   // Remove the task from the database
@@ -40,6 +40,6 @@ export async function deleteTask(url: URL, db: Database) {
   );
 
   return new Response(JSON.stringify({ success: true, deletedId: id }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
   });
 }

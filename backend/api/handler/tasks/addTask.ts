@@ -1,6 +1,6 @@
-import { Database } from 'bun:sqlite';
-import { CronExpressionParser } from 'cron-parser';
-import { logger } from '../../../utils/logger';
+import { Database } from "bun:sqlite";
+import { CronExpressionParser } from "cron-parser";
+import { logger } from "../../../utils/logger";
 
 /**
  * Handles POST /api/tasks
@@ -25,7 +25,7 @@ export async function addTask(req: Request, db: Database) {
       logger.error(
         `POST /api/tasks endpoint. Missing name, command or schedule.\n`,
       );
-      return new Response('Missing name, command or schedule', {
+      return new Response("Missing name, command or schedule", {
         status: 400,
       });
     }
@@ -34,12 +34,12 @@ export async function addTask(req: Request, db: Database) {
     let isCron = false;
 
     // Handle one-time immediate execution
-    if (schedule === '@once') {
+    if (schedule === "@once") {
       nextRunMs = Date.now();
     } else {
       try {
         // Try parsing the schedule as a cron expression
-        logger.info('Schedule : ' + schedule);
+        logger.info("Schedule : " + schedule);
 
         const interval = CronExpressionParser.parse(schedule);
         nextRunMs = interval.next().getTime();
@@ -55,7 +55,7 @@ export async function addTask(req: Request, db: Database) {
             `POST /api/tasks endpoint. Invalid cron string or date format : ${schedule}\n`,
           );
 
-          return new Response('Invalid cron string or date format', {
+          return new Response("Invalid cron string or date format", {
             status: 400,
           });
         }
@@ -71,7 +71,7 @@ export async function addTask(req: Request, db: Database) {
     ).run(name, command, schedule, nextRunMs);
 
     // Retrieve the ID of the newly created task
-    const row = db.query('SELECT last_insert_rowid() as id').get() as {
+    const row = db.query("SELECT last_insert_rowid() as id").get() as {
       id: number;
     };
 
@@ -81,11 +81,11 @@ export async function addTask(req: Request, db: Database) {
 
     return new Response(JSON.stringify({ success: true, id: row.id }), {
       status: 201,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    logger.error('POST /api/tasks endpoint. Error: ' + error + '\n');
+    logger.error("POST /api/tasks endpoint. Error: " + error + "\n");
 
-    return new Response('Internal Server Error', { status: 500 });
+    return new Response("Internal Server Error", { status: 500 });
   }
 }

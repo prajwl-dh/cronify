@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from "node:child_process";
 
 import {
   existsSync,
@@ -6,13 +6,13 @@ import {
   rmSync,
   unlinkSync,
   writeFileSync,
-} from 'node:fs';
+} from "node:fs";
 
-import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { homedir } from "node:os";
+import { join } from "node:path";
 
-import { initConfig } from '../config/config';
-import { logger } from '../utils/logger';
+import { initConfig } from "../config/config";
+import { logger } from "../utils/logger";
 
 /**
  * Fully uninstalls the Cronify daemon from the system,
@@ -24,48 +24,48 @@ export async function uninstallDaemon(values: any) {
   const os = process.platform;
   const execPath = process.execPath;
 
-  const cronifyDir = join(homedir(), '.cronify');
+  const cronifyDir = join(homedir(), ".cronify");
 
-  const vbsPath = join(cronifyDir, 'run_daemon.vbs');
+  const vbsPath = join(cronifyDir, "run_daemon.vbs");
 
   logger.info(`Removing Cronify system hooks for OS: ${os}`);
 
   /**
    * macOS launchd cleanup
    */
-  if (os === 'darwin') {
+  if (os === "darwin") {
     const plistPath = join(
       homedir(),
-      'Library',
-      'LaunchAgents',
-      'com.cronify.daemon.plist',
+      "Library",
+      "LaunchAgents",
+      "com.cronify.daemon.plist",
     );
 
     if (existsSync(plistPath)) {
-      spawnSync('launchctl', ['unload', plistPath]);
+      spawnSync("launchctl", ["unload", plistPath]);
 
       unlinkSync(plistPath);
     }
-  } else if (os === 'linux') {
+  } else if (os === "linux") {
     /**
      * Linux systemd cleanup
      */
     const servicePath = join(
       homedir(),
-      '.config',
-      'systemd',
-      'user',
-      'cronify.service',
+      ".config",
+      "systemd",
+      "user",
+      "cronify.service",
     );
 
     if (existsSync(servicePath)) {
-      spawnSync('systemctl', ['--user', 'disable', 'cronify.service']);
+      spawnSync("systemctl", ["--user", "disable", "cronify.service"]);
 
       unlinkSync(servicePath);
 
-      spawnSync('systemctl', ['--user', 'daemon-reload']);
+      spawnSync("systemctl", ["--user", "daemon-reload"]);
     }
-  } else if (os === 'win32') {
+  } else if (os === "win32") {
     /**
      * Windows scheduled task cleanup
      */
@@ -74,50 +74,50 @@ export async function uninstallDaemon(values: any) {
      */
     if (!isWindowsAdmin()) {
       logger.error(
-        '❌ Administrator privileges are required to uninstall Cronify.',
+        "❌ Administrator privileges are required to uninstall Cronify.",
       );
 
       logger.info(
-        'Please reopen your terminal as Administrator and try again.',
+        "Please reopen your terminal as Administrator and try again.",
       );
 
       process.exit(1);
     }
 
-    logger.info('🛑 Stopping daemon before uninstall...');
+    logger.info("🛑 Stopping daemon before uninstall...");
 
     /**
      * Attempt graceful shutdown
      */
     try {
       await fetch(`http://127.0.0.1:${config.port}/api/shutdown`, {
-        method: 'POST',
+        method: "POST",
       });
 
       await new Promise((r) => setTimeout(r, 2000));
 
-      logger.info('✅ Shutdown request sent');
+      logger.info("✅ Shutdown request sent");
     } catch {}
 
     /**
      * Remove scheduled task
      */
-    spawnSync('schtasks', ['/delete', '/tn', 'CronifyDaemon', '/f'], {
-      stdio: 'ignore',
+    spawnSync("schtasks", ["/delete", "/tn", "CronifyDaemon", "/f"], {
+      stdio: "ignore",
     });
 
     /**
      * Kill daemon PID only
      */
-    const pidFile = join(cronifyDir, 'daemon.pid');
+    const pidFile = join(cronifyDir, "daemon.pid");
 
     if (existsSync(pidFile)) {
       try {
-        const pid = readFileSync(pidFile, 'utf-8').trim();
+        const pid = readFileSync(pidFile, "utf-8").trim();
 
         if (pid) {
-          spawnSync('taskkill', ['/F', '/PID', pid], {
-            stdio: 'ignore',
+          spawnSync("taskkill", ["/F", "/PID", pid], {
+            stdio: "ignore",
           });
         }
 
@@ -128,8 +128,8 @@ export async function uninstallDaemon(values: any) {
     /**
      * Kill lingering launcher
      */
-    spawnSync('taskkill', ['/F', '/IM', 'wscript.exe'], {
-      stdio: 'ignore',
+    spawnSync("taskkill", ["/F", "/IM", "wscript.exe"], {
+      stdio: "ignore",
     });
 
     /**
@@ -147,16 +147,16 @@ export async function uninstallDaemon(values: any) {
 
   logger.info(
     shouldDeleteUserData
-      ? '🗑️ Deleting ALL user data...'
-      : '📦 Preserving user data (~/.cronify)...',
+      ? "🗑️ Deleting ALL user data..."
+      : "📦 Preserving user data (~/.cronify)...",
   );
 
-  console.info('🧨 Self-destructing binary file...');
+  console.info("🧨 Self-destructing binary file...");
 
   /**
    * Windows self-delete
    */
-  if (os === 'win32') {
+  if (os === "win32") {
     const cleanupScript = `
 @echo off
 
@@ -170,7 +170,7 @@ if exist "${execPath}" (
   goto retry
 )
 
-${shouldDeleteUserData ? `rmdir /s /q "${cronifyDir}" > NUL 2>&1` : ''}
+${shouldDeleteUserData ? `rmdir /s /q "${cronifyDir}" > NUL 2>&1` : ""}
 
 del "%~f0"
 `;
@@ -181,14 +181,14 @@ del "%~f0"
      */
     const batPath = join(
       process.env.TEMP || process.cwd(),
-      'cronify_cleanup.bat',
+      "cronify_cleanup.bat",
     );
 
     writeFileSync(batPath, cleanupScript);
 
-    const child = spawn('cmd.exe', ['/c', batPath], {
+    const child = spawn("cmd.exe", ["/c", batPath], {
       detached: true,
-      stdio: 'ignore',
+      stdio: "ignore",
       windowsHide: true,
     });
 
@@ -216,7 +216,7 @@ del "%~f0"
   }
 
   console.info(
-    '✅ Cronify has been completely removed from your system. Goodbye!',
+    "✅ Cronify has been completely removed from your system. Goodbye!",
   );
 
   process.exit(0);
@@ -226,8 +226,8 @@ del "%~f0"
  * Checks admin privilege
  */
 export function isWindowsAdmin(): boolean {
-  const result = spawnSync('net', ['session'], {
-    stdio: 'ignore',
+  const result = spawnSync("net", ["session"], {
+    stdio: "ignore",
     shell: true,
   });
 

@@ -1,4 +1,4 @@
-import { initConfig } from '../../config/config';
+import { initConfig } from "../../config/config";
 
 /**
  * Builds and returns the base API URL using the configured port.

@@ -1,4 +1,4 @@
-import { installDaemon } from '../../os/install';
+import { installDaemon } from "../../os/install";
 
 /**
  * CLI command: install

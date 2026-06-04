@@ -1,6 +1,6 @@
-import type { Log } from '../../types/logType';
-import { apiFetch } from '../lib/api';
-import { getApiUrl } from '../lib/config';
+import type { Log } from "../../types/logType";
+import { apiFetch } from "../lib/api";
+import { getApiUrl } from "../lib/config";
 
 /**
  * CLI command: logs
@@ -13,9 +13,9 @@ export async function logsCommand() {
 
   // Handle empty log state
   if (logs.length === 0) {
-    console.info('No logs available\n');
+    console.info("No logs available\n");
   } else {
     // Output logs as JSON
-    console.info(JSON.stringify(logs) + '\n');
+    console.info(JSON.stringify(logs) + "\n");
   }
 }

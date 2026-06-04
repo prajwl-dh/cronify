@@ -1,6 +1,6 @@
-import { Database } from 'bun:sqlite';
-import type { Task } from '../types/taskType';
-import { logger } from '../utils/logger';
+import { Database } from "bun:sqlite";
+import type { Task } from "../types/taskType";
+import { logger } from "../utils/logger";
 
 /**
  * Executes a scheduled task command and stores
@@ -10,24 +10,24 @@ export async function executeTask(db: Database, task: Task) {
   const executedAt = Date.now();
 
   // Detect the correct shell based on the operating system
-  const isWindows = process.platform === 'win32';
+  const isWindows = process.platform === "win32";
 
-  const shell = isWindows ? 'cmd.exe' : process.env.SHELL || '/bin/zsh';
+  const shell = isWindows ? "cmd.exe" : process.env.SHELL || "/bin/zsh";
 
-  const shellArgs = isWindows ? ['/c'] : ['-ilc'];
+  const shellArgs = isWindows ? ["/c"] : ["-ilc"];
 
-  let stdoutText = '';
-  let stderrText = '';
+  let stdoutText = "";
+  let stderrText = "";
   let exitCode: number | null = null;
 
   try {
     // Spawn the task command using the system shell
     const proc = Bun.spawn([shell, ...shellArgs, task.command], {
-      stdout: 'pipe',
-      stderr: 'pipe',
+      stdout: "pipe",
+      stderr: "pipe",
       env: {
         ...process.env,
-        TERM: 'xterm-256color',
+        TERM: "xterm-256color",
       },
     });
 
@@ -36,7 +36,7 @@ export async function executeTask(db: Database, task: Task) {
 
     exitCode = await proc.exited;
   } catch (error: any) {
-    stderrText = error.message || 'Unknown spawn error';
+    stderrText = error.message || "Unknown spawn error";
     exitCode = -1;
   } finally {
     // Reset task status so it becomes schedulable again
@@ -69,13 +69,13 @@ export async function executeTask(db: Database, task: Task) {
           `✅ Task ${task.id}: ${task.command} , finished successfully (exit code ${exitCode})\n` +
             (stdoutText
               ? `--- STDOUT ---\n${stdoutText}`
-              : '--- STDOUT ---\n<empty>'),
+              : "--- STDOUT ---\n<empty>"),
         );
       } else {
         logger.error(
           `❌ Task ${task.id}: ${task.command} , failed (exit code ${exitCode})\n` +
-            (stdoutText ? `--- STDOUT ---\n${stdoutText}\n` : '') +
-            (stderrText ? `--- STDERR ---\n${stderrText}` : '<no stderr>'),
+            (stdoutText ? `--- STDOUT ---\n${stdoutText}\n` : "") +
+            (stderrText ? `--- STDERR ---\n${stderrText}` : "<no stderr>"),
         );
       }
     } catch (dbError) {

@@ -1,9 +1,9 @@
-import { startServer } from './backend/api/server';
-import { runCli } from './backend/cli/runCli';
-import { initConfig } from './backend/config/config';
-import { initDatabase } from './backend/db/schema';
-import { startScheduler } from './backend/engine/scheduler';
-import { logger } from './backend/utils/logger';
+import { startServer } from "./backend/api/server";
+import { runCli } from "./backend/cli/runCli";
+import { initConfig } from "./backend/config/config";
+import { initDatabase } from "./backend/db/schema";
+import { startScheduler } from "./backend/engine/scheduler";
+import { logger } from "./backend/utils/logger";
 
 /**
  * Application entry point
@@ -15,8 +15,8 @@ async function main() {
   const args = Bun.argv.slice(2);
 
   // Internal daemon mode (used by system/service runner)
-  if (args[0] === 'daemon' && args.includes('--internal')) {
-    logger.info('Internal daemon worker started');
+  if (args[0] === "daemon" && args.includes("--internal")) {
+    logger.info("Internal daemon worker started");
 
     // Load application configuration (port, env, etc.)
     const config = initConfig();

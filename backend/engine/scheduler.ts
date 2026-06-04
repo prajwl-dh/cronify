@@ -1,8 +1,8 @@
-import { Database } from 'bun:sqlite';
-import { CronExpressionParser } from 'cron-parser';
-import type { Task } from '../types/taskType';
-import { logger } from '../utils/logger';
-import { executeTask } from './runner';
+import { Database } from "bun:sqlite";
+import { CronExpressionParser } from "cron-parser";
+import type { Task } from "../types/taskType";
+import { logger } from "../utils/logger";
+import { executeTask } from "./runner";
 
 /**
  * Starts the Cronify scheduler loop.
@@ -11,7 +11,7 @@ import { executeTask } from './runner';
  * updates their status, and triggers execution.
  */
 export function startScheduler(db: Database) {
-  logger.info('🕒 Cronify Scheduler started ...');
+  logger.info("🕒 Cronify Scheduler started ...");
 
   setInterval(() => {
     const now = Date.now();
@@ -34,7 +34,7 @@ export function startScheduler(db: Database) {
           let nextRunMs = 0;
 
           // Validate and parse the cron expression
-          if (task.cron_string !== '@once') {
+          if (task.cron_string !== "@once") {
             try {
               const interval = CronExpressionParser.parse(task.cron_string);
 

@@ -1,18 +1,18 @@
-import { parseArgs } from 'util';
+import { parseArgs } from "util";
 
-import { updateCronify } from '../os/update';
-import { addCommand } from './commands/add';
-import { changeCommand } from './commands/change';
-import { deleteCommand } from './commands/delete';
-import { healthCommand } from './commands/health';
-import { installCommand } from './commands/install';
-import { listCommand } from './commands/list';
-import { logCommand } from './commands/log';
-import { logsCommand } from './commands/logs';
-import { startCommand } from './commands/start';
-import { stopCommand } from './commands/stop';
-import { uninstallCommand } from './commands/uninstall';
-import { versionCommand } from './commands/version';
+import { updateCronify } from "../os/update";
+import { addCommand } from "./commands/add";
+import { changeCommand } from "./commands/change";
+import { deleteCommand } from "./commands/delete";
+import { healthCommand } from "./commands/health";
+import { installCommand } from "./commands/install";
+import { listCommand } from "./commands/list";
+import { logCommand } from "./commands/log";
+import { logsCommand } from "./commands/logs";
+import { startCommand } from "./commands/start";
+import { stopCommand } from "./commands/stop";
+import { uninstallCommand } from "./commands/uninstall";
+import { versionCommand } from "./commands/version";
 
 /**
  * CLI entry handler
@@ -23,13 +23,13 @@ export async function runCli(args: string[]) {
   const { positionals, values } = parseArgs({
     args,
     options: {
-      name: { type: 'string', short: 'n' },
-      cmd: { type: 'string', short: 'c' },
-      schedule: { type: 'string', short: 's' },
-      id: { type: 'string', short: 'i' },
-      port: { type: 'string', short: 'p' },
-      confirm: { type: 'boolean' },
-      full: { type: 'boolean' },
+      name: { type: "string", short: "n" },
+      cmd: { type: "string", short: "c" },
+      schedule: { type: "string", short: "s" },
+      id: { type: "string", short: "i" },
+      port: { type: "string", short: "p" },
+      confirm: { type: "boolean" },
+      full: { type: "boolean" },
     },
     allowPositionals: true,
     strict: false,
@@ -41,48 +41,48 @@ export async function runCli(args: string[]) {
   try {
     // Route command to corresponding handler
     switch (command) {
-      case 'web': {
+      case "web": {
         startCommand();
         return;
       }
 
-      case 'add':
+      case "add":
         return await addCommand(values);
 
-      case 'delete':
+      case "delete":
         return await deleteCommand(values);
 
-      case 'list':
+      case "list":
         return await listCommand();
 
-      case 'logs':
+      case "logs":
         return await logsCommand();
 
-      case 'log':
+      case "log":
         return await logCommand(values);
 
-      case 'install':
+      case "install":
         return installCommand();
 
-      case 'uninstall':
+      case "uninstall":
         return await uninstallCommand(values);
 
-      case 'start':
+      case "start":
         return startCommand();
 
-      case 'stop':
+      case "stop":
         return stopCommand();
 
-      case 'change':
+      case "change":
         return changeCommand(values);
 
-      case 'health':
+      case "health":
         return await healthCommand();
 
-      case 'version':
+      case "version":
         return versionCommand();
 
-      case 'update':
+      case "update":
         return updateCronify();
 
       default:
@@ -135,9 +135,9 @@ export async function runCli(args: string[]) {
     }
   } catch (error: any) {
     // Handle connection-level failures separately from runtime errors
-    if (error?.cause?.code === 'ECONNREFUSED') {
+    if (error?.cause?.code === "ECONNREFUSED") {
       console.error(
-        'Looks like the daemon is not running. Start it first by running: cronify start',
+        "Looks like the daemon is not running. Start it first by running: cronify start",
       );
     } else {
       console.error(

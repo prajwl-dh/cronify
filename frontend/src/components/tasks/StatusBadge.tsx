@@ -1,11 +1,11 @@
 type StatusBadgeType = {
-  taskStatus: 'active' | 'inactive' | 'obsolete';
+  taskStatus: "active" | "inactive" | "obsolete";
 };
 
 export default function StatusBadge({ taskStatus }: StatusBadgeType) {
   const displayStatus: Partial<
     Record<
-      StatusBadgeType['taskStatus'],
+      StatusBadgeType["taskStatus"],
       {
         label: string;
         style: string;
@@ -14,16 +14,16 @@ export default function StatusBadge({ taskStatus }: StatusBadgeType) {
     >
   > = {
     inactive: {
-      label: 'Scheduled',
+      label: "Scheduled",
       style:
-        'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
-      dot: 'bg-emerald-500',
+        "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400",
+      dot: "bg-emerald-500",
     },
     obsolete: {
-      label: 'Completed',
+      label: "Completed",
       style:
-        'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
-      dot: 'bg-slate-400',
+        "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300",
+      dot: "bg-slate-400",
     },
   };
 

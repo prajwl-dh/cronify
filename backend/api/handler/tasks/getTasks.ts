@@ -1,5 +1,5 @@
-import { Database } from 'bun:sqlite';
-import { logger } from '../../../utils/logger';
+import { Database } from "bun:sqlite";
+import { logger } from "../../../utils/logger";
 
 /**
  * Handles GET /api/tasks
@@ -7,12 +7,12 @@ import { logger } from '../../../utils/logger';
  * and returns them as a JSON response.
  */
 export async function getTasks(db: Database) {
-  logger.info('GET /api/tasks endpoint called\n');
+  logger.info("GET /api/tasks endpoint called\n");
 
   // Fetch all tasks from the database
-  const tasks = db.query('SELECT * FROM tasks').all();
+  const tasks = db.query("SELECT * FROM tasks").all();
 
   return new Response(JSON.stringify(tasks), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
   });
 }

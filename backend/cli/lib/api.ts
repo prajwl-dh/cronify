@@ -8,7 +8,7 @@ export async function apiFetch(url: string, options?: RequestInit) {
   // Perform HTTP request with default JSON headers
   const res = await fetch(url, {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(options?.headers || {}),
     },
     ...options,
@@ -20,10 +20,10 @@ export async function apiFetch(url: string, options?: RequestInit) {
   }
 
   // Determine response format based on Content-Type header
-  const contentType = res.headers.get('content-type');
+  const contentType = res.headers.get("content-type");
 
   // Parse JSON responses automatically
-  if (contentType?.includes('application/json')) {
+  if (contentType?.includes("application/json")) {
     return res.json();
   }
 

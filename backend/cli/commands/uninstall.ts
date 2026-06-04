@@ -1,5 +1,5 @@
-import { stopDaemonService } from '../../os/service';
-import { uninstallDaemon } from '../../os/uninstall';
+import { stopDaemonService } from "../../os/service";
+import { uninstallDaemon } from "../../os/uninstall";
 
 /**
  * CLI command: uninstall
@@ -10,17 +10,17 @@ import { uninstallDaemon } from '../../os/uninstall';
  */
 export async function uninstallCommand(values: any) {
   // Warn user about destructive operation
-  console.log('⚠️ WARNING: This will remove Cronify daemon and binary.');
+  console.log("⚠️ WARNING: This will remove Cronify daemon and binary.");
 
   // Require explicit confirmation flag before proceeding
   if (!values.confirm) {
-    console.log('To confirm, run: cronify uninstall --confirm');
+    console.log("To confirm, run: cronify uninstall --confirm");
     return;
   }
 
   if (values.full) {
     console.log(
-      '⚠️ --full detected: this WILL delete all user data (~/.cronify)',
+      "⚠️ --full detected: this WILL delete all user data (~/.cronify)",
     );
   }
 

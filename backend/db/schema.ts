@@ -1,8 +1,8 @@
-import { Database } from 'bun:sqlite';
-import { mkdirSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
-import { logger } from '../utils/logger';
+import { Database } from "bun:sqlite";
+import { mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import { logger } from "../utils/logger";
 
 /**
  * Initializes the Cronify SQLite database.
@@ -12,16 +12,16 @@ import { logger } from '../utils/logger';
  * and required indexes.
  */
 export function initDatabase(): Database {
-  const dir = join(homedir(), '.cronify');
+  const dir = join(homedir(), ".cronify");
 
   // Create the config directory on first run
   mkdirSync(dir, { recursive: true });
 
   // Create or open the SQLite database
-  const dbPath = join(dir, 'cronify.sqlite');
+  const dbPath = join(dir, "cronify.sqlite");
   const db = new Database(dbPath);
 
-  logger.info('💾 Initializing Database ...');
+  logger.info("💾 Initializing Database ...");
 
   // Create application tables and indexes
   db.run(`

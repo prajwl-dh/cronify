@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from "node:child_process";
 import {
   copyFileSync,
   existsSync,
@@ -7,13 +7,13 @@ import {
   rmSync,
   statSync,
   writeFileSync,
-} from 'node:fs';
-import { arch, homedir, platform } from 'node:os';
-import { join } from 'node:path';
-import { logger } from '../utils/logger';
-import { startDaemonService, stopDaemonService } from './service';
+} from "node:fs";
+import { arch, homedir, platform } from "node:os";
+import { join } from "node:path";
+import { logger } from "../utils/logger";
+import { startDaemonService, stopDaemonService } from "./service";
 
-const REPO = 'prajwl-dh/cronify';
+const REPO = "prajwl-dh/cronify";
 const LATEST_API = `https://api.github.com/repos/${REPO}/releases/latest`;
 
 type Asset = {
@@ -25,7 +25,7 @@ type Asset = {
 
 export async function updateCronify() {
   try {
-    logger.info('🔄 Checking for updates...');
+    logger.info("🔄 Checking for updates...");
 
     const currentVersion = getCurrentVersion();
     const latest = await fetchLatest();
@@ -34,14 +34,14 @@ export async function updateCronify() {
     logger.info(`🚀 Latest: ${latest.version}`);
 
     if (!isNewer(latest.version, currentVersion)) {
-      logger.info('✅ Already up to date.');
+      logger.info("✅ Already up to date.");
       return;
     }
 
     const asset = selectAsset(latest.assets);
 
     if (!asset) {
-      throw new Error('No matching release asset found');
+      throw new Error("No matching release asset found");
     }
 
     logger.info(`⬇️ Downloading ${asset.name}...`);
@@ -50,31 +50,31 @@ export async function updateCronify() {
     const installPath = process.execPath;
     const backupPath = `${installPath}.old`;
 
-    logger.info('🛑 Stopping Cronify...');
+    logger.info("🛑 Stopping Cronify...");
     await stopDaemonService();
 
-    logger.info('📦 Creating backup...');
+    logger.info("📦 Creating backup...");
     safeBackup(installPath, backupPath);
 
     try {
-      logger.info('⬆️ Installing update...');
+      logger.info("⬆️ Installing update...");
 
-      if (process.platform === 'win32') {
+      if (process.platform === "win32") {
         await runWindowsUpdater(binaryPath, installPath);
 
-        logger.info('🚪 Exiting current process for Windows update...');
+        logger.info("🚪 Exiting current process for Windows update...");
         process.exit(0);
       } else {
         safeReplace(binaryPath, installPath);
 
-        logger.info('🚀 Restarting Cronify...');
+        logger.info("🚀 Restarting Cronify...");
         startDaemonService();
 
-        logger.info('🎉 Update successful. Cleaning backup...');
+        logger.info("🎉 Update successful. Cleaning backup...");
         rmSync(backupPath, { force: true });
       }
     } catch (err) {
-      logger.error('❌ Update failed, rolling back...');
+      logger.error("❌ Update failed, rolling back...");
 
       if (existsSync(backupPath)) {
         copyFileSync(backupPath, installPath);
@@ -85,7 +85,7 @@ export async function updateCronify() {
       throw err;
     }
   } catch (err) {
-    logger.error('❌ Update error:', err);
+    logger.error("❌ Update error:", err);
   }
 }
 
@@ -93,24 +93,24 @@ export async function updateCronify() {
 
 function getCurrentVersion(): string {
   try {
-    const res = spawnSync(process.execPath, ['version'], {
-      encoding: 'utf-8',
+    const res = spawnSync(process.execPath, ["version"], {
+      encoding: "utf-8",
     });
 
-    return res.stdout.trim() || '0.0.0';
+    return res.stdout.trim() || "0.0.0";
   } catch {
-    return '0.0.0';
+    return "0.0.0";
   }
 }
 
 async function fetchLatest() {
   const res = await fetch(LATEST_API, {
     headers: {
-      'User-Agent': 'cronify-updater',
+      "User-Agent": "cronify-updater",
     },
   });
 
-  if (!res.ok) throw new Error('GitHub API failed');
+  if (!res.ok) throw new Error("GitHub API failed");
 
   const data = (await res.json()) as {
     tag_name: string;
@@ -118,14 +118,14 @@ async function fetchLatest() {
   };
 
   return {
-    version: data.tag_name.replace(/^v/, ''),
+    version: data.tag_name.replace(/^v/, ""),
     assets: data.assets,
   };
 }
 
 function isNewer(latest: string, current: string): boolean {
-  const l = latest.split('.').map(Number);
-  const c = current.split('.').map(Number);
+  const l = latest.split(".").map(Number);
+  const c = current.split(".").map(Number);
 
   for (let i = 0; i < 3; i++) {
     if ((l[i] || 0) > (c[i] || 0)) return true;
@@ -141,11 +141,11 @@ function selectAsset(assets: Asset[]) {
   const os = platform();
   const a = arch();
 
-  let key = '';
+  let key = "";
 
-  if (os === 'linux') key = a === 'arm64' ? 'linux-arm64' : 'linux-x64';
-  if (os === 'darwin') key = a === 'arm64' ? 'macos-arm64' : 'macos-x64';
-  if (os === 'win32') key = 'windows-x64';
+  if (os === "linux") key = a === "arm64" ? "linux-arm64" : "linux-x64";
+  if (os === "darwin") key = a === "arm64" ? "macos-arm64" : "macos-x64";
+  if (os === "win32") key = "windows-x64";
 
   return assets.find((a) => a.name.includes(key));
 }
@@ -156,12 +156,12 @@ async function downloadAndExtract(asset: Asset): Promise<string> {
   const res = await fetch(asset.browser_download_url);
 
   if (!res.ok || !res.body) {
-    throw new Error('Download failed');
+    throw new Error("Download failed");
   }
 
-  const baseDir = join(homedir(), '.cronify', 'tmp');
+  const baseDir = join(homedir(), ".cronify", "tmp");
   const zipPath = join(baseDir, asset.name);
-  const extractDir = join(baseDir, 'extracted');
+  const extractDir = join(baseDir, "extracted");
 
   if (!existsSync(baseDir)) {
     mkdirSync(baseDir, { recursive: true });
@@ -175,7 +175,7 @@ async function downloadAndExtract(asset: Asset): Promise<string> {
   const bin = findBinary(extractDir);
 
   if (!bin) {
-    throw new Error('Binary not found after extraction');
+    throw new Error("Binary not found after extraction");
   }
 
   return bin;
@@ -194,15 +194,15 @@ function extractZip(zipPath: string, outDir: string) {
   let cmd: string;
   let args: string[];
 
-  if (os === 'win32') {
-    cmd = 'tar';
-    args = ['-xf', zipPath, '-C', outDir];
+  if (os === "win32") {
+    cmd = "tar";
+    args = ["-xf", zipPath, "-C", outDir];
   } else {
-    cmd = 'unzip';
-    args = ['-o', zipPath, '-d', outDir];
+    cmd = "unzip";
+    args = ["-o", zipPath, "-d", outDir];
   }
 
-  const res = spawnSync(cmd, args, { stdio: 'inherit' });
+  const res = spawnSync(cmd, args, { stdio: "inherit" });
 
   if (res.status !== 0) {
     throw new Error(`Failed to extract zip using ${cmd}`);
@@ -223,9 +223,9 @@ function findBinary(dir: string): string | null {
       if (found) return found;
     } else {
       if (
-        file === 'cronify' ||
-        file === 'cronify.exe' ||
-        file.includes('cronify')
+        file === "cronify" ||
+        file === "cronify.exe" ||
+        file.includes("cronify")
       ) {
         return full;
       }
@@ -251,13 +251,13 @@ function safeBackup(src: string, backup: string) {
 
 /* ------------------------- Window Specific Updater ------------------------- */
 async function runWindowsUpdater(newBinary: string, installPath: string) {
-  const cronifyDir = join(homedir(), '.cronify');
+  const cronifyDir = join(homedir(), ".cronify");
 
-  const batPath = join(cronifyDir, 'updater.bat');
+  const batPath = join(cronifyDir, "updater.bat");
 
   // Stop scheduled task first
-  spawnSync('schtasks', ['/end', '/tn', 'CronifyDaemon'], {
-    stdio: 'ignore',
+  spawnSync("schtasks", ["/end", "/tn", "CronifyDaemon"], {
+    stdio: "ignore",
   });
 
   const bat = `
@@ -282,11 +282,11 @@ async function runWindowsUpdater(newBinary: string, installPath: string) {
     del "%~f0"
     `;
 
-  writeFileSync(batPath, bat, 'utf-8');
+  writeFileSync(batPath, bat, "utf-8");
 
   // Launch detached updater
-  spawn('cmd.exe', ['/c', batPath], {
+  spawn("cmd.exe", ["/c", batPath], {
     detached: true,
-    stdio: 'ignore',
+    stdio: "ignore",
   }).unref();
 }

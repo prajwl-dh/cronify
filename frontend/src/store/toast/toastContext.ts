@@ -1,12 +1,12 @@
-import { createContext } from 'react';
+import { createContext } from "react";
 
 export type ToastPosition =
-  | 'top-right'
-  | 'top-left'
-  | 'bottom-right'
-  | 'bottom-left'
-  | 'top-center'
-  | 'bottom-center';
+  | "top-right"
+  | "top-left"
+  | "bottom-right"
+  | "bottom-left"
+  | "top-center"
+  | "bottom-center";
 
 export type ToastOptions = {
   content: React.ReactNode;
@@ -24,12 +24,12 @@ type ToastFn = {
 
   success: (
     content: React.ReactNode,
-    options?: Omit<ToastOptions, 'content'>,
+    options?: Omit<ToastOptions, "content">,
   ) => void;
 
   error: (
     content: React.ReactNode,
-    options?: Omit<ToastOptions, 'content'>,
+    options?: Omit<ToastOptions, "content">,
   ) => void;
 };
 

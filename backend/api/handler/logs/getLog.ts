@@ -1,5 +1,5 @@
-import { Database } from 'bun:sqlite';
-import { logger } from '../../../utils/logger';
+import { Database } from "bun:sqlite";
+import { logger } from "../../../utils/logger";
 
 /**
  * Handles GET /api/logs/:task_id
@@ -7,10 +7,10 @@ import { logger } from '../../../utils/logger';
  * and returns them as a JSON response.
  */
 export async function getLog(url: URL, db: Database) {
-  const param = url.pathname.split('/').pop();
+  const param = url.pathname.split("/").pop();
   const task_id = Number(param);
 
-  logger.info('GET /api/logs/:task_id endpoint called\n');
+  logger.info("GET /api/logs/:task_id endpoint called\n");
 
   // Fetch all logs linked to the provided task ID
   const logs = db
@@ -20,6 +20,6 @@ export async function getLog(url: URL, db: Database) {
     .all(task_id);
 
   return new Response(JSON.stringify(logs), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
   });
 }

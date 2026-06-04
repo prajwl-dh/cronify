@@ -1,4 +1,4 @@
-import { stopDaemonService } from '../../os/service';
+import { stopDaemonService } from "../../os/service";
 
 /**
  * CLI command: stop

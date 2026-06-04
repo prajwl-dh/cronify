@@ -1,4 +1,4 @@
-import { format, isValid, parseISO } from 'date-fns';
+import { format, isValid, parseISO } from "date-fns";
 
 /**
  * Converts a datetime-local input value (YYYY-MM-DDTHH:mm)
@@ -24,9 +24,9 @@ export function formatDateTimeLocal(value: string): string {
  * Output: May 15, 04:37:00 PM
  */
 export function formatReadableDateTime(timestamp?: number) {
-  if (!timestamp) return 'N/A';
+  if (!timestamp) return "N/A";
 
-  return format(new Date(timestamp), 'MMM d, hh:mm:ss a');
+  return format(new Date(timestamp), "MMM d, hh:mm:ss a");
 }
 
 /**
@@ -42,7 +42,7 @@ export function formatReadableDateTime(timestamp?: number) {
  *  - 2026-99-99
  */
 export function validateIsoDate(value: string): boolean {
-  if (!value || typeof value !== 'string') {
+  if (!value || typeof value !== "string") {
     return false;
   }
 

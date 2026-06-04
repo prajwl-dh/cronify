@@ -1,14 +1,14 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from "react";
 
-import Toast from '../../components/common/Toast';
+import Toast from "../../components/common/Toast";
 
-import { Ban, CircleCheck } from 'lucide-react';
+import { Ban, CircleCheck } from "lucide-react";
 import {
   ToastContext,
   type ToastItem,
   type ToastOptions,
   type ToastPosition,
-} from './toastContext';
+} from "./toastContext";
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -34,17 +34,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       Object.assign(createToast, {
         success: (
           content: React.ReactNode,
-          options?: Omit<ToastOptions, 'content'>,
+          options?: Omit<ToastOptions, "content">,
         ) => {
           createToast({
             content: (
-              <div className='flex items-center gap-4'>
-                <CircleCheck className='h-5 w-5 shrink-0' />
+              <div className="flex items-center gap-4">
+                <CircleCheck className="h-5 w-5 shrink-0" />
                 {content}
               </div>
             ),
 
-            className: 'bg-(--themeAccent) text-white border-none',
+            className: "bg-(--themeAccent) text-white border-none",
 
             ...options,
           });
@@ -52,17 +52,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
         error: (
           content: React.ReactNode,
-          options?: Omit<ToastOptions, 'content'>,
+          options?: Omit<ToastOptions, "content">,
         ) => {
           createToast({
             content: (
-              <div className='flex items-center gap-4'>
-                <Ban className='h-5 w-5 shrink-0' />
+              <div className="flex items-center gap-4">
+                <Ban className="h-5 w-5 shrink-0" />
                 {content}
               </div>
             ),
 
-            className: 'bg-red-600/80 dark:bg-red-800 text-white border-none',
+            className: "bg-red-600/80 dark:bg-red-800 text-white border-none",
 
             ...options,
           });
@@ -73,19 +73,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const groupedToasts = toasts.reduce<Record<ToastPosition, ToastItem[]>>(
     (acc, toast) => {
-      const position = toast.position ?? 'bottom-right';
+      const position = toast.position ?? "bottom-right";
 
       acc[position].push(toast);
 
       return acc;
     },
     {
-      'top-right': [],
-      'top-left': [],
-      'bottom-right': [],
-      'bottom-left': [],
-      'top-center': [],
-      'bottom-center': [],
+      "top-right": [],
+      "top-left": [],
+      "bottom-right": [],
+      "bottom-left": [],
+      "top-center": [],
+      "bottom-center": [],
     },
   );
 
@@ -98,13 +98,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           key={position}
           className={`
               fixed z-50 flex flex-col gap-3 pointer-events-none
-              ${position.includes('top') ? 'top-4' : 'bottom-4'}
-              ${position.includes('right') ? 'right-4 items-end' : ''}
-              ${position.includes('left') ? 'left-4 items-start' : ''}
+              ${position.includes("top") ? "top-4" : "bottom-4"}
+              ${position.includes("right") ? "right-4 items-end" : ""}
+              ${position.includes("left") ? "left-4 items-start" : ""}
               ${
-                position.includes('center')
-                  ? 'left-1/2 -translate-x-1/2 items-center'
-                  : ''
+                position.includes("center")
+                  ? "left-1/2 -translate-x-1/2 items-center"
+                  : ""
               }
             `}
         >
@@ -114,7 +114,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             return (
               <div
                 key={toastItem.id}
-                className='pointer-events-auto transition-all duration-300'
+                className="pointer-events-auto transition-all duration-300"
                 style={{
                   transform: `
           translateY(${reverseIndex * -2}px)
@@ -129,7 +129,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 <Toast
                   className={toastItem.className}
                   duration={toastItem.duration}
-                  position={toastItem.position ?? 'bottom-right'}
+                  position={toastItem.position ?? "bottom-right"}
                   onClose={() => removeToast(toastItem.id)}
                 >
                   {toastItem.content}

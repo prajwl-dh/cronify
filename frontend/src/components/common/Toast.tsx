@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
+import React, { useEffect, useState } from "react";
+import { twMerge } from "tailwind-merge";
 
 type ToastPosition =
-  | 'top-right'
-  | 'top-left'
-  | 'bottom-right'
-  | 'bottom-left'
-  | 'top-center'
-  | 'bottom-center';
+  | "top-right"
+  | "top-left"
+  | "bottom-right"
+  | "bottom-left"
+  | "top-center"
+  | "bottom-center";
 
 interface ToastProps {
   children: React.ReactNode;
@@ -18,12 +18,12 @@ interface ToastProps {
 }
 
 const positionClasses: Record<ToastPosition, string> = {
-  'top-right': 'top-4 right-4',
-  'top-left': 'top-4 left-4',
-  'bottom-right': 'bottom-4 right-4',
-  'bottom-left': 'bottom-4 left-4',
-  'top-center': 'top-4 left-1/2 -translate-x-1/2',
-  'bottom-center': 'bottom-4 left-1/2 -translate-x-1/2',
+  "top-right": "top-4 right-4",
+  "top-left": "top-4 left-4",
+  "bottom-right": "bottom-4 right-4",
+  "bottom-left": "bottom-4 left-4",
+  "top-center": "top-4 left-1/2 -translate-x-1/2",
+  "bottom-center": "bottom-4 left-1/2 -translate-x-1/2",
 };
 
 const animationClasses: Record<
@@ -34,48 +34,48 @@ const animationClasses: Record<
     exit: string;
   }
 > = {
-  'top-right': {
-    hidden: 'opacity-0 translate-x-20 scale-95',
-    visible: 'opacity-100 translate-x-0 scale-100',
-    exit: 'opacity-0 translate-x-20 scale-95',
+  "top-right": {
+    hidden: "opacity-0 translate-x-20 scale-95",
+    visible: "opacity-100 translate-x-0 scale-100",
+    exit: "opacity-0 translate-x-20 scale-95",
   },
 
-  'bottom-right': {
-    hidden: 'opacity-0 translate-x-20 scale-95',
-    visible: 'opacity-100 translate-x-0 scale-100',
-    exit: 'opacity-0 translate-x-20 scale-95',
+  "bottom-right": {
+    hidden: "opacity-0 translate-x-20 scale-95",
+    visible: "opacity-100 translate-x-0 scale-100",
+    exit: "opacity-0 translate-x-20 scale-95",
   },
 
-  'top-left': {
-    hidden: 'opacity-0 -translate-x-20 scale-95',
-    visible: 'opacity-100 translate-x-0 scale-100',
-    exit: 'opacity-0 -translate-x-20 scale-95',
+  "top-left": {
+    hidden: "opacity-0 -translate-x-20 scale-95",
+    visible: "opacity-100 translate-x-0 scale-100",
+    exit: "opacity-0 -translate-x-20 scale-95",
   },
 
-  'bottom-left': {
-    hidden: 'opacity-0 -translate-x-20 scale-95',
-    visible: 'opacity-100 translate-x-0 scale-100',
-    exit: 'opacity-0 -translate-x-20 scale-95',
+  "bottom-left": {
+    hidden: "opacity-0 -translate-x-20 scale-95",
+    visible: "opacity-100 translate-x-0 scale-100",
+    exit: "opacity-0 -translate-x-20 scale-95",
   },
 
-  'top-center': {
-    hidden: 'opacity-0 -translate-y-20 scale-95',
-    visible: 'opacity-100 translate-y-0 scale-100',
-    exit: 'opacity-0 -translate-y-20 scale-95',
+  "top-center": {
+    hidden: "opacity-0 -translate-y-20 scale-95",
+    visible: "opacity-100 translate-y-0 scale-100",
+    exit: "opacity-0 -translate-y-20 scale-95",
   },
 
-  'bottom-center': {
-    hidden: 'opacity-0 translate-y-20 scale-95',
-    visible: 'opacity-100 translate-y-0 scale-100',
-    exit: 'opacity-0 translate-y-20 scale-95',
+  "bottom-center": {
+    hidden: "opacity-0 translate-y-20 scale-95",
+    visible: "opacity-100 translate-y-0 scale-100",
+    exit: "opacity-0 translate-y-20 scale-95",
   },
 };
 
 export default function Toast({
   children,
-  className = '',
+  className = "",
   duration = 4000,
-  position = 'bottom-right',
+  position = "bottom-right",
   onClose,
 }: ToastProps) {
   const [closing, setClosing] = useState(false);
@@ -113,18 +113,18 @@ export default function Toast({
     <div
       onClick={closeWithAnimation}
       className={twMerge(
-        'select-none min-w-52 sm:min-w-60 fixed z-50 group border bg-(--foreground) text-(--primaryText) border-(--border) px-4 py-3 rounded-2xl shadow flex items-start gap-3',
+        "select-none min-w-52 sm:min-w-60 fixed z-50 group border bg-(--foreground) text-(--primaryText) border-(--border) px-4 py-3 rounded-2xl shadow flex items-start gap-3",
         positionClasses[position],
         className,
 
-        'transition-all duration-300 ease-in-out',
+        "transition-all duration-300 ease-in-out",
 
         !mounted && animation.hidden,
         mounted && !closing && animation.visible,
         closing && animation.exit,
       )}
     >
-      <div className='flex-1'>{children}</div>
+      <div className="flex-1">{children}</div>
     </div>
   );
 }

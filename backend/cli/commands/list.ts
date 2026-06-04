@@ -1,6 +1,6 @@
-import type { Task } from '../../types/taskType';
-import { apiFetch } from '../lib/api';
-import { getApiUrl } from '../lib/config';
+import type { Task } from "../../types/taskType";
+import { apiFetch } from "../lib/api";
+import { getApiUrl } from "../lib/config";
 
 /**
  * CLI command: list
@@ -13,9 +13,9 @@ export async function listCommand() {
 
   // Handle empty state
   if (tasks.length === 0) {
-    console.info('No tasks scheduled\n');
+    console.info("No tasks scheduled\n");
   } else {
     // Output task list as JSON
-    console.info(JSON.stringify(tasks) + '\n');
+    console.info(JSON.stringify(tasks) + "\n");
   }
 }

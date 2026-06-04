@@ -1,6 +1,6 @@
-import { apiFetch } from '../lib/api';
-import { getApiUrl } from '../lib/config';
-import { requireFlag } from '../lib/errors';
+import { apiFetch } from "../lib/api";
+import { getApiUrl } from "../lib/config";
+import { requireFlag } from "../lib/errors";
 
 /**
  * CLI command: add
@@ -13,13 +13,13 @@ import { requireFlag } from '../lib/errors';
  */
 export async function addCommand(values: any) {
   // Validate required CLI inputs
-  requireFlag(values.name, 'Missing --name');
-  requireFlag(values.cmd, 'Missing --cmd');
-  requireFlag(values.schedule, 'Missing --schedule');
+  requireFlag(values.name, "Missing --name");
+  requireFlag(values.cmd, "Missing --cmd");
+  requireFlag(values.schedule, "Missing --schedule");
 
   // Send task creation request to backend API
   const data = await apiFetch(`${getApiUrl()}/api/tasks`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({
       name: values.name,
       command: values.cmd,
