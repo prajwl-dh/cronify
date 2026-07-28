@@ -4,11 +4,13 @@ import { updateCronify } from "../os/update";
 import { addCommand } from "./commands/add";
 import { changeCommand } from "./commands/change";
 import { deleteCommand } from "./commands/delete";
+import { editCommand } from "./commands/edit";
 import { healthCommand } from "./commands/health";
 import { installCommand } from "./commands/install";
 import { listCommand } from "./commands/list";
 import { logCommand } from "./commands/log";
 import { logsCommand } from "./commands/logs";
+import { runCommand } from "./commands/run";
 import { startCommand } from "./commands/start";
 import { stopCommand } from "./commands/stop";
 import { uninstallCommand } from "./commands/uninstall";
@@ -25,6 +27,7 @@ export async function runCli(args: string[]) {
     options: {
       name: { type: "string", short: "n" },
       cmd: { type: "string", short: "c" },
+      command: { type: "string" },
       schedule: { type: "string", short: "s" },
       id: { type: "string", short: "i" },
       port: { type: "string", short: "p" },
@@ -48,6 +51,12 @@ export async function runCli(args: string[]) {
 
       case "add":
         return await addCommand(values);
+
+      case "edit":
+        return await editCommand(values);
+
+      case "run":
+        return await runCommand(values);
 
       case "delete":
         return await deleteCommand(values);
@@ -96,6 +105,12 @@ export async function runCli(args: string[]) {
           cronify add --name "<task name>" --cmd "<command>" --schedule "<schedule>"
             Adds a new scheduled task
 
+          cronify edit --id <id> [--name "<name>"] [--cmd "<command>"] [--schedule "<schedule>"]
+            Edits an existing task details or schedule
+
+          cronify run --id <id>
+            Immediately triggers execution of a task
+
           cronify delete --id <id>
             Deletes a task with the specified id
 
@@ -141,7 +156,10 @@ export async function runCli(args: string[]) {
       );
     } else {
       console.error(
-        `Error message: ${error.message}\n\nLooks like the daemon is not running. Start it first by running: cronify start\n`,
+        `Error message: ${error.message}
+
+Looks like the daemon is not running. Start it first by running: cronify start
+`,
       );
     }
   }

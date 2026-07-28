@@ -22,11 +22,7 @@ export default function Tasks({ showLog, setShowLog, tasks }: TasksType) {
         setStatusFilter={setStatusFilter}
       />
 
-      <TasksTable
-        statusFilter={statusFilter}
-        tasks={tasks}
-        setShowLog={setShowLog}
-      />
+      <TasksTable statusFilter={statusFilter} setShowLog={setShowLog} />
     </div>
   );
 }

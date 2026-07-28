@@ -21,6 +21,9 @@ export function initDatabase(): Database {
   const dbPath = join(dir, "cronify.sqlite");
   const db = new Database(dbPath);
 
+  // Enable foreign keys
+  db.run("PRAGMA foreign_keys = ON;");
+
   logger.info("💾 Initializing Database ...");
 
   // Create application tables and indexes
@@ -47,8 +50,10 @@ export function initDatabase(): Database {
         );
 
         CREATE INDEX IF NOT EXISTS idx_tasks_next_run ON tasks(next_run);
-
+        CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
         CREATE INDEX IF NOT EXISTS idx_logs_task_id ON logs(task_id);
+        CREATE INDEX IF NOT EXISTS idx_logs_executed_at ON logs(executed_at);
+        CREATE INDEX IF NOT EXISTS idx_logs_exit_code ON logs(exit_code);
     `);
 
   return db;

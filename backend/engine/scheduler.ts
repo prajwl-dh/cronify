@@ -77,5 +77,5 @@ export function startScheduler(db: Database) {
     });
 
     processDueTasks(dueTasks);
-  }, 30000);
+  }, 10000);
 }

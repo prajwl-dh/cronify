@@ -1,23 +1,33 @@
 type StatusBadgeType = {
-  taskStatus: "active" | "inactive" | "obsolete";
+  taskStatus: "active" | "inactive" | "obsolete" | "paused";
 };
 
 export default function StatusBadge({ taskStatus }: StatusBadgeType) {
-  const displayStatus: Partial<
-    Record<
-      StatusBadgeType["taskStatus"],
-      {
-        label: string;
-        style: string;
-        dot: string;
-      }
-    >
+  const displayStatus: Record<
+    StatusBadgeType["taskStatus"],
+    {
+      label: string;
+      style: string;
+      dot: string;
+    }
   > = {
+    active: {
+      label: "Running",
+      style:
+        "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 animate-pulse",
+      dot: "bg-blue-500",
+    },
     inactive: {
       label: "Scheduled",
       style:
         "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400",
       dot: "bg-emerald-500",
+    },
+    paused: {
+      label: "Paused",
+      style:
+        "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400",
+      dot: "bg-amber-500",
     },
     obsolete: {
       label: "Completed",
@@ -27,7 +37,7 @@ export default function StatusBadge({ taskStatus }: StatusBadgeType) {
     },
   };
 
-  const config = displayStatus[taskStatus] ?? displayStatus.obsolete!;
+  const config = displayStatus[taskStatus] ?? displayStatus.obsolete;
 
   return (
     <span

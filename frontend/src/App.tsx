@@ -6,6 +6,7 @@ import Logs from "./components/logs/Logs";
 import Navbar from "./components/navbar/Navbar";
 import Tasks from "./components/tasks/Tasks";
 import { APP_PORT } from "./config/config";
+import type { Task } from "./types/taskType";
 
 export default function App() {
   const [showLog, setShowLog] = useState(-1);
@@ -25,11 +26,13 @@ export default function App() {
     return <Error error={error} />;
   }
 
+  const tasksList: Task[] = Array.isArray(data) ? data : data?.tasks || [];
+
   return (
     <div className="h-dvh flex flex-col items-center justify-between bg-(--background) font-mono overflow-x-hidden">
       <Navbar setShowLog={setShowLog} />
-      <Logs showLog={showLog} setShowLog={setShowLog} tasks={data} />
-      <Tasks showLog={showLog} setShowLog={setShowLog} tasks={data} />
+      <Logs showLog={showLog} setShowLog={setShowLog} tasks={tasksList} />
+      <Tasks showLog={showLog} setShowLog={setShowLog} tasks={tasksList} />
     </div>
   );
 }

@@ -1,25 +1,20 @@
 import { Database } from "bun:sqlite";
 import { logger } from "../../../utils/logger";
+import { getLogs } from "./getLogs";
 
 /**
  * Handles GET /api/logs/:task_id
- * Retrieves all logs associated with a specific task ID
- * and returns them as a JSON response.
+ * Retrieves logs for a specific task ID, supporting pagination and filtering.
  */
 export async function getLog(url: URL, db: Database) {
-  const param = url.pathname.split("/").pop();
-  const task_id = Number(param);
+  const pathParts = url.pathname.split("/").filter(Boolean);
+  const taskId = pathParts[pathParts.length - 1];
 
-  logger.info("GET /api/logs/:task_id endpoint called\n");
+  if (taskId && !isNaN(Number(taskId))) {
+    url.searchParams.set("task_id", taskId);
+  }
 
-  // Fetch all logs linked to the provided task ID
-  const logs = db
-    .query(
-      `SELECT * FROM logs WHERE task_id = ? ORDER BY executed_at DESC LIMIT 200`,
-    )
-    .all(task_id);
+  logger.info(`GET /api/logs/${taskId} called`);
 
-  return new Response(JSON.stringify(logs), {
-    headers: { "Content-Type": "application/json" },
-  });
+  return getLogs(url, db);
 }

@@ -5,8 +5,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "clean": "rimraf dist && rimraf out && rimraf ui && rimraf .*.bun-build",
-    "dev-build": "bun clean && cd frontend && bun install && bun run build && cd .. && bun install && bun build ./index.ts --compile --outfile ./dist/cronify",
+    "clean": "rimraf dist && rimraf out && rimraf ui/* && rimraf .*.bun-build",
+    "dev-build": "bun ./scripts/build.ts",
+    "build": "bun ./scripts/build.ts",
     "format": "prettier . --write",
     "install-deps": "bun i && cd frontend && bun i"
   },

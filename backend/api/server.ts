@@ -4,11 +4,15 @@ import { logger } from "../utils/logger";
 import { getHealth } from "./handler/common/getHealth";
 import { getAppVersion } from "./handler/common/getVersion";
 import { shutdownDaemon } from "./handler/common/shutdownDaemon";
+import { clearLogs } from "./handler/logs/clearLogs";
 import { getLog } from "./handler/logs/getLog";
 import { getLogs } from "./handler/logs/getLogs";
 import { addTask } from "./handler/tasks/addTask";
 import { deleteTask } from "./handler/tasks/deleteTask";
+import { editTask } from "./handler/tasks/editTask";
 import { getTasks } from "./handler/tasks/getTasks";
+import { runTask } from "./handler/tasks/runTask";
+import { toggleTask } from "./handler/tasks/toggleTask";
 
 let activeServer: any = null;
 
@@ -29,7 +33,7 @@ export function startServer(db: Database, port: number) {
           response.headers.set("Access-Control-Allow-Origin", "*");
           response.headers.set(
             "Access-Control-Allow-Methods",
-            "GET, POST, DELETE, OPTIONS",
+            "GET, POST, PUT, DELETE, OPTIONS",
           );
           response.headers.set("Access-Control-Allow-Headers", "Content-Type");
           return response;
@@ -51,22 +55,71 @@ export function startServer(db: Database, port: number) {
 
         // GET /api/tasks
         if (url.pathname === "/api/tasks" && req.method === "GET") {
-          return withCors(await getTasks(db));
+          return withCors(await getTasks(url, db));
         }
 
-        // POST /api/tasks
-        if (url.pathname === "/api/tasks" && req.method === "POST") {
+        // POST /api/tasks/edit or /api/tasks/:id/edit or /api/tasks/:id (when editing)
+        if (
+          req.method === "POST" &&
+          (url.pathname === "/api/tasks/edit" ||
+            (url.pathname.startsWith("/api/tasks/") &&
+              url.pathname.endsWith("/edit")))
+        ) {
+          return withCors(await editTask(req, url, db));
+        }
+
+        // POST /api/tasks/:id/run or /api/tasks/run
+        if (
+          req.method === "POST" &&
+          (url.pathname === "/api/tasks/run" ||
+            (url.pathname.startsWith("/api/tasks/") &&
+              url.pathname.endsWith("/run")))
+        ) {
+          return withCors(await runTask(req, url, db));
+        }
+
+        // POST /api/tasks/:id/toggle or /api/tasks/toggle
+        if (
+          req.method === "POST" &&
+          (url.pathname === "/api/tasks/toggle" ||
+            (url.pathname.startsWith("/api/tasks/") &&
+              url.pathname.endsWith("/toggle")))
+        ) {
+          return withCors(await toggleTask(req, url, db));
+        }
+
+        // POST /api/tasks (add task or edit task if body contains id or if route is /api/tasks/:id)
+        if (req.method === "POST" && url.pathname === "/api/tasks") {
           return withCors(await addTask(req, db));
+        }
+
+        if (
+          req.method === "POST" &&
+          url.pathname.startsWith("/api/tasks/") &&
+          !url.pathname.endsWith("/run") &&
+          !url.pathname.endsWith("/toggle") &&
+          !url.pathname.endsWith("/edit")
+        ) {
+          return withCors(await editTask(req, url, db));
         }
 
         // GET /api/logs
         if (url.pathname === "/api/logs" && req.method === "GET") {
-          return withCors(await getLogs(db));
+          return withCors(await getLogs(url, db));
         }
 
         // GET /api/logs/:task_id
-        if (url.pathname.startsWith("/api/logs") && req.method === "GET") {
+        if (url.pathname.startsWith("/api/logs/") && req.method === "GET") {
           return withCors(await getLog(url, db));
+        }
+
+        // DELETE /api/logs or /api/logs/:task_id
+        if (
+          (url.pathname === "/api/logs" ||
+            url.pathname.startsWith("/api/logs/")) &&
+          req.method === "DELETE"
+        ) {
+          return withCors(await clearLogs(url, db));
         }
 
         // DELETE /api/tasks/:id
@@ -93,21 +146,21 @@ export function startServer(db: Database, port: number) {
       },
     });
   } catch (error: any) {
-    // Handle port conflicts when the daemon is already running
     if (error.code === "EADDRINUSE") {
       console.error(
-        `\n❌ ERROR: Cronify Daemon is already running on port ${port}.`,
+        `
+❌ ERROR: Cronify Daemon is already running on port ${port}.`,
       );
-
       console.error(
-        `If you need to restart it, kill the existing process first.\n`,
+        `If you need to restart it, kill the existing process first.
+`,
       );
-
       process.exit(1);
     } else {
       throw error;
     }
   }
 
-  logger.info(`🌐 Cronify API now listening on http://127.0.0.1:${port}\n`);
+  logger.info(`🌐 Cronify API now listening on http://127.0.0.1:${port}
+`);
 }
