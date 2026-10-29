@@ -1,8 +1,8 @@
 # Cronify
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/prajwl-dh/cronify/main/assets/tasks.png" alt="Tasks" width="49%" />
-  <img src="https://raw.githubusercontent.com/prajwl-dh/cronify/main/assets/logs.png" alt="Logs" width="49%" />
+  <img src="https://raw.githubusercontent.com/prajwl-dh/cronify/refs/heads/main/assets/tasks.png" alt="Tasks" width="49%" />
+  <img src="https://raw.githubusercontent.com/prajwl-dh/cronify/refs/heads/main/assets/logs.png" alt="Logs" width="49%" />
 </p>
 
 Cronify is a modern standalone task scheduler built with Bun for Windows, macOS, and Linux.
