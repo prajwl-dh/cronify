@@ -38,3 +38,6 @@ cronify
 *.bun-build
 
 ui
+.agents
+skills-lock.json
+.taste-skill

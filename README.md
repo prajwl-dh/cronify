@@ -24,6 +24,19 @@ It runs as a lightweight background daemon with a built-in Web UI, persistent ex
 - Auto-start on system boot/login
 - Self-update support
 
+## Web Dashboard
+
+Cronify ships a built-in monitoring dashboard served by the daemon at `http://127.0.0.1:2207` (or your configured port). It is a single-file app embedded in the binary, so there is nothing extra to install.
+
+Screens:
+
+- **Overview** — daemon health, 24-hour execution chart, success/failure counts, average duration, next-up countdown, and the most recent failures.
+- **Tasks** — searchable, filterable, sortable task table with status tabs, bulk actions (run / pause / resume / delete), create/edit dialogs with a live schedule preview, run-now, and pause/resume toggles.
+- **Logs** — paginated execution history with task, trigger, attempt, exit code, duration and output, plus filters and clear-all.
+- **Settings** — daemon configuration (port, default timeout, log retention) with the same controls as `cronify config`.
+
+The dashboard and CLI talk to the same daemon API, so every change made in one is reflected in the other.
+
 # Installation
 
 ## macOS / Linux
@@ -165,6 +178,90 @@ Displays logs for a specific task.
 
 ```bash
 cronify log --id 1
+```
+
+## Edit Task
+
+Updates an existing task's name, command, schedule, timeout or retries.
+
+| Argument     | Description                                         |
+| ------------ | --------------------------------------------------- |
+| `--id`       | Task ID (required)                                  |
+| `--name`     | New name                                            |
+| `--cmd`      | New command                                         |
+| `--schedule` | New cron expression, `@once`, or ISO 8601 timestamp |
+| `--timeout`  | New timeout in seconds (`0` disables)               |
+| `--retries`  | New retry count (0–10)                              |
+
+```bash
+cronify edit --id 1 --schedule "0 3 * * *"
+cronify edit --id 1 --cmd "echo updated" --retries 3
+```
+
+## Pause Task
+
+Pauses a scheduled task without deleting it.
+
+| Argument | Description |
+| -------- | ----------- |
+| `--id`   | Task ID     |
+
+```bash
+cronify pause --id 1
+```
+
+## Resume Task
+
+Resumes a paused task and recomputes its next run.
+
+| Argument | Description |
+| -------- | ----------- |
+| `--id`   | Task ID     |
+
+```bash
+cronify resume --id 1
+```
+
+## Stats
+
+Prints daemon health and the last 24 hours of execution (runs, success rate, failures, upcoming tasks).
+
+| Argument | Description                    |
+| -------- | ------------------------------ |
+| `--json` | Print the raw overview as JSON |
+
+```bash
+cronify stats
+cronify stats --json
+```
+
+## Validate Schedule
+
+Checks a cron expression, `@once`, or ISO 8601 date and previews its next runs.
+
+| Argument     | Description                     |
+| ------------ | ------------------------------- |
+| `--schedule` | Schedule to validate (required) |
+
+```bash
+cronify validate --schedule "0 2 * * *"
+cronify validate --schedule "2026-05-20T15:30:00+05:30"
+```
+
+## Config
+
+Shows or updates daemon preferences. Port changes need a daemon restart.
+
+| Argument      | Description                           |
+| ------------- | ------------------------------------- |
+| `--port`      | Daemon port (1–65535)                 |
+| `--timeout`   | Default task timeout in seconds       |
+| `--retention` | Log retention in days (`0` = forever) |
+| `--json`      | Print the raw config as JSON          |
+
+```bash
+cronify config
+cronify config --timeout 120 --retention 30
 ```
 
 ## Health Check

@@ -4,8 +4,10 @@
  * - automatic JSON/text parsing
  * - error handling for non-2xx responses
  */
-export async function apiFetch(url: string, options?: RequestInit) {
-  // Perform HTTP request with default JSON headers
+export async function apiFetch<T = any>(
+  url: string,
+  options?: RequestInit,
+): Promise<T> {
   const res = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
@@ -14,19 +16,23 @@ export async function apiFetch(url: string, options?: RequestInit) {
     ...options,
   });
 
-  // Throw error if response status is not successful
   if (!res.ok) {
-    throw new Error(await res.text());
+    const text = await res.text();
+
+    try {
+      const parsed = JSON.parse(text);
+      throw new Error(parsed.error || text);
+    } catch (error) {
+      if (error instanceof Error && error.message) throw error;
+      throw new Error(text);
+    }
   }
 
-  // Determine response format based on Content-Type header
   const contentType = res.headers.get("content-type");
 
-  // Parse JSON responses automatically
   if (contentType?.includes("application/json")) {
-    return res.json();
+    return (await res.json()) as T;
   }
 
-  // Fallback for plain text or non-JSON responses
-  return res.text();
+  return (await res.text()) as T;
 }

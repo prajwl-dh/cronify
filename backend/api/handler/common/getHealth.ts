@@ -1,21 +1,48 @@
+import { Database } from "bun:sqlite";
 import pkg from "../../../../package.json";
-import { logger } from "../../../utils/logger";
+import { initConfig } from "../../../config/config";
+import { getRunningTaskIds } from "../../../engine/runner";
+import { json } from "../../lib/http";
 
 /**
  * Handles GET /api/health
- * Gets the health status of the API
+ * Reports daemon uptime, task counts and the database connection.
  */
-export async function getHealth() {
-  logger.info("GET /api/health endpoint called");
+export async function getHealth(db?: Database) {
+  const config = initConfig();
+  let database = "unavailable";
 
-  const health = {
+  try {
+    if (db) {
+      db.query("SELECT 1").get();
+      database = "connected";
+    }
+  } catch {
+    database = "error";
+  }
+
+  let taskCount = 0;
+
+  try {
+    if (db) {
+      const row = db.query("SELECT COUNT(*) as count FROM tasks").get() as {
+        count: number;
+      };
+      taskCount = row.count;
+    }
+  } catch {
+    taskCount = 0;
+  }
+
+  return json({
     daemonStatus: "running",
     version: pkg.version,
     timestamp: new Date().toISOString(),
-  };
-
-  return new Response(JSON.stringify(health), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
+    uptimeMs: Math.floor(process.uptime() * 1000),
+    port: config.port,
+    pid: process.pid,
+    database,
+    taskCount,
+    runningTasks: getRunningTaskIds().length,
   });
 }

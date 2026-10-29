@@ -1,38 +1,52 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import Error from "./components/common/Error";
-import Loading from "./components/common/Loading";
-import Logs from "./components/logs/Logs";
-import Navbar from "./components/navbar/Navbar";
-import Tasks from "./components/tasks/Tasks";
-import { APP_PORT } from "./config/config";
-import type { Task } from "./types/taskType";
+import { api } from "./api/client";
+import type { Task } from "./api/types";
+import { Shell } from "./components/Shell";
+import { TaskDialog } from "./components/TaskDialog";
+import { LogsPage } from "./pages/LogsPage";
+import { OverviewPage } from "./pages/OverviewPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { TasksPage } from "./pages/TasksPage";
+import { useRoute } from "./lib/route";
 
 export default function App() {
-  const [showLog, setShowLog] = useState(-1);
+  const route = useRoute();
+  const [dialog, setDialog] = useState<{ task: Task | null } | null>(null);
 
-  const { isPending, error, data } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: () =>
-      fetch(`http://127.0.0.1:${APP_PORT}/api/tasks`).then((res) => res.json()),
-    refetchInterval: 10000,
+  const overview = useQuery({
+    queryKey: ["overview"],
+    queryFn: api.overview,
+    refetchInterval: 10_000,
   });
 
-  if (isPending) {
-    return <Loading />;
-  }
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [route.path]);
 
-  if (error) {
-    return <Error error={error} />;
-  }
-
-  const tasksList: Task[] = Array.isArray(data) ? data : data?.tasks || [];
+  const taskParam = Number(route.params.get("task"));
+  const initialTaskId =
+    Number.isInteger(taskParam) && taskParam > 0 ? taskParam : null;
 
   return (
-    <div className="h-dvh flex flex-col items-center justify-between bg-(--background) font-mono overflow-x-hidden">
-      <Navbar setShowLog={setShowLog} />
-      <Logs showLog={showLog} setShowLog={setShowLog} tasks={tasksList} />
-      <Tasks showLog={showLog} setShowLog={setShowLog} tasks={tasksList} />
-    </div>
+    <>
+      <Shell path={route.path} failureCount={overview.data?.runs.failure ?? 0}>
+        {route.path === "tasks" ? (
+          <TasksPage onEdit={(task) => setDialog({ task })} />
+        ) : route.path === "logs" ? (
+          <LogsPage initialTaskId={initialTaskId} />
+        ) : route.path === "settings" ? (
+          <SettingsPage />
+        ) : (
+          <OverviewPage onNewTask={() => setDialog({ task: null })} />
+        )}
+      </Shell>
+
+      <TaskDialog
+        open={dialog !== null}
+        task={dialog?.task ?? null}
+        onClose={() => setDialog(null)}
+      />
+    </>
   );
 }

@@ -1,81 +1,117 @@
 import { Database } from "bun:sqlite";
-import { CronExpressionParser } from "cron-parser";
+import { initConfig } from "../config/config";
+import { purgeOldLogs } from "../db/schema";
 import type { Task } from "../types/taskType";
 import { logger } from "../utils/logger";
+import { parseSchedule } from "../utils/schedule";
 import { executeTask } from "./runner";
+
+const TICK_MS = 1000;
+const RETENTION_CHECK_MS = 60 * 60 * 1000;
+
+let schedulerTimer: ReturnType<typeof setInterval> | null = null;
+let retentionTimer: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * A crash can leave a task in the internal "active" state. Reset it
+ * on startup so the scheduler can pick it up again.
+ */
+function resetStuckTasks(db: Database) {
+  const result = db
+    .query("UPDATE tasks SET status = 'inactive' WHERE status = 'active'")
+    .run();
+
+  if (result.changes > 0) {
+    logger.warn(
+      `Recovered ${result.changes} task(s) stuck in the running state.`,
+    );
+  }
+}
+
+function runRetention(db: Database) {
+  const config = initConfig();
+  const deleted = purgeOldLogs(db, config.logRetentionDays);
+
+  if (deleted > 0) {
+    logger.info(
+      `🧹 Removed ${deleted} log(s) older than ${config.logRetentionDays} days.`,
+    );
+  }
+}
 
 /**
  * Starts the Cronify scheduler loop.
  *
- * Continuously checks for due tasks,
- * updates their status, and triggers execution.
+ * Every second it claims due tasks, advances their next run, and
+ * triggers execution. A single-flight guard in the runner prevents
+ * overlapping executions of the same task.
  */
 export function startScheduler(db: Database) {
+  if (schedulerTimer) return;
+
   logger.info("🕒 Cronify Scheduler started ...");
 
-  setInterval(() => {
-    const now = Date.now();
+  resetStuckTasks(db);
+  runRetention(db);
 
-    // Fetch tasks that are ready to run
-    const getDueTasks = db.query(`
-        SELECT * FROM tasks
-        WHERE status = 'inactive' AND next_run <= ?
-        `);
+  let scanning = false;
 
-    const dueTasks = getDueTasks.all(now) as Task[];
+  schedulerTimer = setInterval(() => {
+    if (scanning) return;
+    scanning = true;
 
-    if (dueTasks.length === 0) return;
+    try {
+      const now = Date.now();
 
-    // Process all due tasks inside a single transaction
-    const processDueTasks = db.transaction((tasks: Task[]) => {
-      for (const task of tasks) {
+      const dueTasks = db
+        .query(
+          `
+          SELECT * FROM tasks
+          WHERE status = 'inactive' AND next_run <= ?
+          ORDER BY next_run ASC
+          LIMIT 50
+          `,
+        )
+        .all(now) as Task[];
+
+      if (dueTasks.length === 0) return;
+
+      for (const task of dueTasks) {
         try {
-          let isCron = false;
-          let nextRunMs = 0;
+          const parsed = parseSchedule(task.cron_string, new Date(now));
 
-          // Validate and parse the cron expression
-          if (task.cron_string !== "@once") {
-            try {
-              const interval = CronExpressionParser.parse(task.cron_string);
-
-              nextRunMs = interval.next().getTime();
-              isCron = true;
-            } catch (cronError) {
-              isCron = false;
-            }
-          }
-
-          // Update task state based on execution type
-          if (!isCron) {
-            // One-time task
+          if (!parsed.ok || parsed.kind !== "cron") {
+            // One-time task (or an unparseable legacy expression):
+            // mark it complete and run it once.
             db.query(
-              `
-              UPDATE tasks 
-              SET status = 'obsolete', updated_at = ? 
-              WHERE id = ?
-            `,
-            ).run(Date.now(), task.id);
+              "UPDATE tasks SET status = 'obsolete', updated_at = ? WHERE id = ?",
+            ).run(now, task.id);
           } else {
-            // Repeating cron task
             db.query(
-              `
-              UPDATE tasks
-              SET status = 'active', next_run = ?, updated_at = ?
-              WHERE id = ?
-            `,
-            ).run(nextRunMs, Date.now(), task.id);
+              "UPDATE tasks SET status = 'active', next_run = ?, updated_at = ? WHERE id = ?",
+            ).run(parsed.nextRun, now, task.id);
           }
 
-          // Execute the task asynchronously
-          executeTask(db, task);
+          void executeTask(db, task, "schedule");
         } catch (error) {
           logger.error(
             `[Scheduler Error] Task ${task.id} failed to process. Error message : ${error}`,
           );
         }
       }
-    });
+    } catch (error) {
+      logger.error(`[Scheduler Error] ${error}`);
+    } finally {
+      scanning = false;
+    }
+  }, TICK_MS);
 
-    processDueTasks(dueTasks);
-  }, 10000);
+  retentionTimer = setInterval(() => runRetention(db), RETENTION_CHECK_MS);
+}
+
+export function stopScheduler() {
+  if (schedulerTimer) clearInterval(schedulerTimer);
+  if (retentionTimer) clearInterval(retentionTimer);
+  schedulerTimer = null;
+  retentionTimer = null;
 }

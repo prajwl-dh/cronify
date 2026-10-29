@@ -1,45 +1,23 @@
 import { Database } from "bun:sqlite";
 import { logger } from "../../../utils/logger";
+import { error, json, notFound, taskIdFromPath } from "../../lib/http";
 
 /**
  * Handles DELETE /api/tasks/:id
- * Deletes a task from the database using the provided task ID.
+ * Deletes a task and, through the cascade, its execution logs.
  */
 export async function deleteTask(url: URL, db: Database) {
-  const param = url.pathname.split("/").pop();
-  const id = Number(param);
+  const id = taskIdFromPath(url.pathname);
 
-  logger.info(`DELETE /api/tasks/{:id} endpoint called with id: ${param}`);
+  if (!id) return error("Invalid task id");
 
-  // Validate the provided task ID
-  if (isNaN(id)) {
-    logger.error(
-      `DELETE /api/tasks/{:id} endpoint. Invalid task id: ${param}\n`,
-    );
+  const result = db.query("DELETE FROM tasks WHERE id = ?").run(id);
 
-    return new Response("Invalid task id", { status: 400 });
-  }
-
-  // Remove the task from the database
-  const deleteQuery = db.query(`DELETE FROM tasks WHERE id = ?`);
-  const result = deleteQuery.run(id);
-
-  // Return 404 if the task does not exist
   if (result.changes === 0) {
-    logger.error(
-      `DELETE /api/tasks/{:id} endpoint. Task with id: ${id} does not exist\n`,
-    );
-
-    return new Response(`Task with id ${id} does not exist`, {
-      status: 404,
-    });
+    return notFound(`Task with id ${id} does not exist`);
   }
 
-  logger.info(
-    `DELETE /api/tasks/{:id} endpoint. Task with id: ${id} deleted successfully\n`,
-  );
+  logger.info(`Task ${id} deleted.`);
 
-  return new Response(JSON.stringify({ success: true, deletedId: id }), {
-    headers: { "Content-Type": "application/json" },
-  });
+  return json({ success: true, deletedId: id });
 }

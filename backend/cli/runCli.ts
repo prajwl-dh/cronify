@@ -3,6 +3,7 @@ import { parseArgs } from "util";
 import { updateCronify } from "../os/update";
 import { addCommand } from "./commands/add";
 import { changeCommand } from "./commands/change";
+import { configCommand } from "./commands/config";
 import { deleteCommand } from "./commands/delete";
 import { editCommand } from "./commands/edit";
 import { healthCommand } from "./commands/health";
@@ -10,19 +11,23 @@ import { installCommand } from "./commands/install";
 import { listCommand } from "./commands/list";
 import { logCommand } from "./commands/log";
 import { logsCommand } from "./commands/logs";
+import { pauseCommand } from "./commands/pause";
+import { resumeCommand } from "./commands/resume";
 import { runCommand } from "./commands/run";
 import { startCommand } from "./commands/start";
+import { statsCommand } from "./commands/stats";
 import { stopCommand } from "./commands/stop";
 import { uninstallCommand } from "./commands/uninstall";
+import { validateCommand } from "./commands/validate";
 import { versionCommand } from "./commands/version";
+import { getConfig } from "./lib/config";
 
 /**
  * CLI entry handler
  * Parses arguments and routes execution to the correct command module.
  */
 export async function runCli(args: string[]) {
-  // Parse CLI arguments into positional commands and flags
-  const { positionals, values } = parseArgs({
+  const { positionals, values: rawValues } = parseArgs({
     args,
     options: {
       name: { type: "string", short: "n" },
@@ -31,21 +36,33 @@ export async function runCli(args: string[]) {
       schedule: { type: "string", short: "s" },
       id: { type: "string", short: "i" },
       port: { type: "string", short: "p" },
+      timeout: { type: "string", short: "t" },
+      retries: { type: "string", short: "r" },
+      retention: { type: "string" },
+      status: { type: "string" },
+      search: { type: "string" },
+      limit: { type: "string" },
+      json: { type: "boolean" },
+      all: { type: "boolean" },
       confirm: { type: "boolean" },
       full: { type: "boolean" },
+      help: { type: "boolean", short: "h" },
+      version: { type: "boolean", short: "v" },
     },
     allowPositionals: true,
     strict: false,
   });
 
-  // First positional argument defines the command
+  // parseArgs with `strict: false` widens values to `string | boolean | undefined`.
+  // Each command validates the fields it actually needs, so narrow once here.
+  const values = rawValues as any;
   const command = positionals[0];
 
   try {
-    // Route command to corresponding handler
     switch (command) {
       case "web": {
         startCommand();
+        console.info(`Dashboard: http://127.0.0.1:${getConfig().port}`);
         return;
       }
 
@@ -58,17 +75,32 @@ export async function runCli(args: string[]) {
       case "run":
         return await runCommand(values);
 
+      case "pause":
+        return await pauseCommand(values);
+
+      case "resume":
+        return await resumeCommand(values);
+
       case "delete":
         return await deleteCommand(values);
 
       case "list":
-        return await listCommand();
+        return await listCommand(values);
 
       case "logs":
-        return await logsCommand();
+        return await logsCommand(values);
 
       case "log":
         return await logCommand(values);
+
+      case "stats":
+        return await statsCommand(values);
+
+      case "validate":
+        return await validateCommand(values);
+
+      case "config":
+        return await configCommand(values);
 
       case "install":
         return installCommand();
@@ -86,7 +118,7 @@ export async function runCli(args: string[]) {
         return changeCommand(values);
 
       case "health":
-        return await healthCommand();
+        return await healthCommand(values);
 
       case "version":
         return versionCommand();
@@ -95,61 +127,9 @@ export async function runCli(args: string[]) {
         return updateCronify();
 
       default:
-        // Fallback help output when command is unknown
-        console.log(`
-          Cronify CLI Usage:
-
-          cronify web
-            Returns the URL for cronify web dashboard
-
-          cronify add --name "<task name>" --cmd "<command>" --schedule "<schedule>"
-            Adds a new scheduled task
-
-          cronify edit --id <id> [--name "<name>"] [--cmd "<command>"] [--schedule "<schedule>"]
-            Edits an existing task details or schedule
-
-          cronify run --id <id>
-            Immediately triggers execution of a task
-
-          cronify delete --id <id>
-            Deletes a task with the specified id
-
-          cronify list
-            Lists all scheduled tasks
-
-          cronify logs
-            Lists logs for all tasks
-
-          cronify log --id <task_id>
-            Shows logs for a specific task by id
-
-          cronify change --port <port>
-            Changes the running port number to a new port
-
-          cronify health
-            Gets the health status of the daemon
-
-          cronify version
-            Returns the current version of the cronify binary
-
-          cronify start
-            Starts the Cronify background daemon (if stopped)
-
-          cronify stop
-            Stops the Cronify background daemon
-
-          cronify uninstall --confirm
-            Removes background daemon and binary but preserves user data
-
-          cronify uninstall --confirm --full
-            Removes Cronify INCLUDING all user data, logs, and configs
-
-          cronify update
-            Updates cronify to the latest version from GitHub release
-        `);
+        printHelp();
     }
   } catch (error: any) {
-    // Handle connection-level failures separately from runtime errors
     if (error?.cause?.code === "ECONNREFUSED") {
       console.error(
         "Looks like the daemon is not running. Start it first by running: cronify start",
@@ -162,5 +142,42 @@ Looks like the daemon is not running. Start it first by running: cronify start
 `,
       );
     }
+    process.exitCode = 1;
   }
+}
+
+function printHelp() {
+  console.log(`
+Cronify — a local task scheduler with a web dashboard.
+
+Tasks
+  cronify add --name "<name>" --cmd "<command>" --schedule "<cron|@once|ISO>"
+      [--timeout <seconds>] [--retries <0-10>]
+  cronify list [--status <status>] [--search <text>] [--limit <n>] [--json]
+  cronify edit --id <id> [--name …] [--cmd …] [--schedule …] [--timeout …] [--retries …]
+  cronify run --id <id> | --all
+  cronify pause --id <id>
+  cronify resume --id <id>
+  cronify delete --id <id>
+  cronify validate --schedule "<cron|@once|ISO>"
+
+History
+  cronify logs [--id <task_id>] [--status success|error] [--limit <n>] [--json]
+  cronify log --id <task_id>              Logs for one task (alias)
+  cronify stats [--json]                  Daemon health and last 24 hours
+
+Daemon
+  cronify web                             Start the daemon and print the dashboard URL
+  cronify start                           Start the background daemon
+  cronify stop                            Stop the background daemon
+  cronify health [--json]                 Check daemon, database and scheduler
+  cronify config [--timeout <s>] [--retention <days>] [--port <port>] [--json]
+  cronify change --port <port>            Change the port and restart the daemon
+  cronify version                         Show the installed version
+
+Maintenance
+  cronify install                         Install the OS service hook
+  cronify update                          Update from the latest GitHub release
+  cronify uninstall --confirm [--full]    Remove Cronify (--full deletes user data)
+`);
 }

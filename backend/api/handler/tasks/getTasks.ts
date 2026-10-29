@@ -1,20 +1,31 @@
 import { Database } from "bun:sqlite";
-import type { Task } from "../../../types/taskType";
+import { getRunningTaskIds } from "../../../engine/runner";
+import type { Task, TaskWithRuntime } from "../../../types/taskType";
 import { logger } from "../../../utils/logger";
+import { describeSchedule } from "../../../utils/schedule";
+import { json } from "../../lib/http";
+
+function withRuntime(tasks: Task[]): TaskWithRuntime[] {
+  const running = new Set(getRunningTaskIds());
+  return tasks.map((task) => ({
+    ...task,
+    is_running: running.has(task.id),
+    schedule_description: describeSchedule(task.cron_string),
+  }));
+}
 
 /**
  * Handles GET /api/tasks
- * Supports pagination, status filtering, and keyword search.
+ * Supports pagination, status filtering, keyword search and sorting.
  */
 export async function getTasks(url: URL, db: Database) {
-  logger.info(
-    `GET /api/tasks endpoint called with searchParams: ${url.search}`,
-  );
+  logger.info(`GET /api/tasks called with searchParams: ${url.search}`);
 
   const pageParam = url.searchParams.get("page");
   const limitParam = url.searchParams.get("limit");
   const statusFilter = url.searchParams.get("status");
   const searchQuery = url.searchParams.get("search");
+  const sortParam = url.searchParams.get("sort") || "next_run";
 
   const isPaginated = pageParam !== null || limitParam !== null;
 
@@ -35,9 +46,21 @@ export async function getTasks(url: URL, db: Database) {
   const whereClause =
     conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+  const orderBy =
+    sortParam === "name"
+      ? "name COLLATE NOCASE ASC"
+      : sortParam === "last_run"
+        ? "last_run_at DESC NULLS LAST"
+        : sortParam === "runs"
+          ? "run_count DESC"
+          : "CASE status WHEN 'inactive' THEN 0 WHEN 'active' THEN 1 WHEN 'paused' THEN 2 ELSE 3 END, next_run ASC, id DESC";
+
   if (isPaginated) {
     const page = Math.max(1, parseInt(pageParam || "1", 10) || 1);
-    const limit = Math.max(1, parseInt(limitParam || "15", 10) || 15);
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(limitParam || "15", 10) || 15),
+    );
     const offset = (page - 1) * limit;
 
     const countResult = db
@@ -47,35 +70,24 @@ export async function getTasks(url: URL, db: Database) {
 
     const tasks = db
       .query(
-        `SELECT * FROM tasks ${whereClause} ORDER BY CASE status WHEN 'inactive' THEN 0 WHEN 'active' THEN 1 WHEN 'paused' THEN 2 ELSE 3 END, id DESC LIMIT ? OFFSET ?`,
+        `SELECT * FROM tasks ${whereClause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`,
       )
       .all(...params, limit, offset) as Task[];
 
     const totalPages = Math.ceil(total / limit) || 1;
-    const hasMore = page < totalPages;
 
-    return new Response(
-      JSON.stringify({
-        tasks,
-        total,
-        page,
-        totalPages,
-        hasMore,
-      }),
-      {
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return json({
+      tasks: withRuntime(tasks),
+      total,
+      page,
+      totalPages,
+      hasMore: page < totalPages,
+    });
   }
 
-  // Non-paginated fallback for legacy/CLI calls
   const tasks = db
-    .query(
-      `SELECT * FROM tasks ${whereClause} ORDER BY CASE status WHEN 'inactive' THEN 0 WHEN 'active' THEN 1 WHEN 'paused' THEN 2 ELSE 3 END, id DESC`,
-    )
+    .query(`SELECT * FROM tasks ${whereClause} ORDER BY ${orderBy}`)
     .all(...params) as Task[];
 
-  return new Response(JSON.stringify(tasks), {
-    headers: { "Content-Type": "application/json" },
-  });
+  return json(withRuntime(tasks));
 }

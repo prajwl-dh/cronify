@@ -1,152 +1,187 @@
 import { Database } from "bun:sqlite";
 import indexHtml from "../../ui/index.html" with { type: "text" };
+import { initConfig } from "../config/config";
 import { logger } from "../utils/logger";
+import { getConfig, updateConfig } from "./handler/common/config";
 import { getHealth } from "./handler/common/getHealth";
+import { getOverview } from "./handler/common/getOverview";
 import { getAppVersion } from "./handler/common/getVersion";
 import { shutdownDaemon } from "./handler/common/shutdownDaemon";
 import { clearLogs } from "./handler/logs/clearLogs";
 import { getLog } from "./handler/logs/getLog";
+import { getLogDetail } from "./handler/logs/getLogDetail";
 import { getLogs } from "./handler/logs/getLogs";
 import { addTask } from "./handler/tasks/addTask";
+import { bulkTasks } from "./handler/tasks/bulkTasks";
 import { deleteTask } from "./handler/tasks/deleteTask";
 import { editTask } from "./handler/tasks/editTask";
+import { getTask } from "./handler/tasks/getTask";
 import { getTasks } from "./handler/tasks/getTasks";
 import { runTask } from "./handler/tasks/runTask";
+import { setTaskStatus } from "./handler/tasks/setTaskStatus";
 import { toggleTask } from "./handler/tasks/toggleTask";
+import { validateSchedule } from "./handler/tasks/validateSchedule";
+import { error, json } from "./lib/http";
 
-let activeServer: any = null;
+let activeServer: ReturnType<typeof Bun.serve> | null = null;
+
+function isLocalOrigin(origin: string) {
+  return /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$/.test(origin);
+}
 
 /**
- * Starts the Cronify API server and registers
- * all task, log, and daemon control endpoints.
+ * Starts the Cronify API server and registers all task, log, daemon
+ * control endpoints. The daemon binds to localhost only: it controls
+ * commands on this machine and must not be reachable from the network.
  */
 export function startServer(db: Database, port: number) {
   try {
     activeServer = Bun.serve({
-      port: port,
+      port,
+      hostname: "127.0.0.1",
 
       async fetch(req) {
         const url = new URL(req.url);
+        const method = req.method;
+        const path = url.pathname;
 
-        // Helper to add CORS headers
+        // Reject cross-site requests from pages that are not Cronify's
+        // own local UI. Tools and the CLI send no Origin header.
+        const origin = req.headers.get("origin");
+        if (origin && !isLocalOrigin(origin)) {
+          return new Response("Forbidden origin", { status: 403 });
+        }
+
         function withCors(response: Response) {
-          response.headers.set("Access-Control-Allow-Origin", "*");
+          if (origin) {
+            response.headers.set("Access-Control-Allow-Origin", origin);
+            response.headers.set("Vary", "Origin");
+          }
           response.headers.set(
             "Access-Control-Allow-Methods",
-            "GET, POST, PUT, DELETE, OPTIONS",
+            "GET, POST, PATCH, DELETE, OPTIONS",
           );
           response.headers.set("Access-Control-Allow-Headers", "Content-Type");
           return response;
         }
 
-        // Handle preflight OPTIONS requests
-        if (req.method === "OPTIONS") {
+        if (method === "OPTIONS") {
           return withCors(new Response(null, { status: 204 }));
         }
 
-        // Serve UI at root
-        if (url.pathname === "/" || url.pathname === "/index.html") {
+        // The single-file web dashboard.
+        if (path === "/" || path === "/index.html") {
           return withCors(
             new Response(indexHtml.toString(), {
-              headers: { "Content-Type": "text/html" },
+              headers: {
+                "Content-Type": "text/html; charset=utf-8",
+                "Cache-Control": "no-store",
+              },
             }),
           );
         }
 
-        // GET /api/tasks
-        if (url.pathname === "/api/tasks" && req.method === "GET") {
-          return withCors(await getTasks(url, db));
+        if (!path.startsWith("/api/")) {
+          return withCors(new Response("Not Found", { status: 404 }));
         }
 
-        // POST /api/tasks/edit or /api/tasks/:id/edit or /api/tasks/:id (when editing)
-        if (
-          req.method === "POST" &&
-          (url.pathname === "/api/tasks/edit" ||
-            (url.pathname.startsWith("/api/tasks/") &&
-              url.pathname.endsWith("/edit")))
-        ) {
-          return withCors(await editTask(req, url, db));
-        }
+        try {
+          let response: Response;
 
-        // POST /api/tasks/:id/run or /api/tasks/run
-        if (
-          req.method === "POST" &&
-          (url.pathname === "/api/tasks/run" ||
-            (url.pathname.startsWith("/api/tasks/") &&
-              url.pathname.endsWith("/run")))
-        ) {
-          return withCors(await runTask(req, url, db));
-        }
+          // ---------- daemon ----------
+          if (path === "/api/health" && method === "GET") {
+            response = await getHealth(db);
+          } else if (path === "/api/version" && method === "GET") {
+            response = await getAppVersion();
+          } else if (path === "/api/config" && method === "GET") {
+            response = await getConfig();
+          } else if (
+            path === "/api/config" &&
+            (method === "PATCH" || method === "POST")
+          ) {
+            response = await updateConfig(req, db);
+          } else if (path === "/api/shutdown" && method === "POST") {
+            response = await shutdownDaemon();
+          } else if (
+            (path === "/api/overview" || path === "/api/stats") &&
+            method === "GET"
+          ) {
+            response = await getOverview(db);
+          } else if (path === "/api/schedule/validate" && method === "POST") {
+            response = await validateSchedule(req);
 
-        // POST /api/tasks/:id/toggle or /api/tasks/toggle
-        if (
-          req.method === "POST" &&
-          (url.pathname === "/api/tasks/toggle" ||
-            (url.pathname.startsWith("/api/tasks/") &&
-              url.pathname.endsWith("/toggle")))
-        ) {
-          return withCors(await toggleTask(req, url, db));
-        }
+            // ---------- tasks ----------
+          } else if (path === "/api/tasks" && method === "GET") {
+            response = await getTasks(url, db);
+          } else if (path === "/api/tasks" && method === "POST") {
+            response = await addTask(req, db);
+          } else if (path === "/api/tasks/bulk" && method === "POST") {
+            response = await bulkTasks(req, db);
+          } else if (path === "/api/tasks/edit" && method === "POST") {
+            response = await editTask(req, url, db);
+          } else if (path === "/api/tasks/run" && method === "POST") {
+            response = await runTask(req, url, db);
+          } else if (path === "/api/tasks/toggle" && method === "POST") {
+            response = await toggleTask(req, url, db);
+          } else if (
+            path.match(/^\/api\/tasks\/\d+\/run$/) &&
+            method === "POST"
+          ) {
+            response = await runTask(req, url, db);
+          } else if (
+            path.match(/^\/api\/tasks\/\d+\/toggle$/) &&
+            method === "POST"
+          ) {
+            response = await toggleTask(req, url, db);
+          } else if (
+            path.match(/^\/api\/tasks\/\d+\/pause$/) &&
+            method === "POST"
+          ) {
+            response = await setTaskStatus(url, db, "paused");
+          } else if (
+            path.match(/^\/api\/tasks\/\d+\/resume$/) &&
+            method === "POST"
+          ) {
+            response = await setTaskStatus(url, db, "inactive");
+          } else if (
+            path.match(/^\/api\/tasks\/\d+\/edit$/) &&
+            method === "POST"
+          ) {
+            response = await editTask(req, url, db);
+          } else if (path.match(/^\/api\/tasks\/\d+$/) && method === "GET") {
+            response = await getTask(url, db);
+          } else if (path.match(/^\/api\/tasks\/\d+$/) && method === "DELETE") {
+            response = await deleteTask(url, db);
+          } else if (path.match(/^\/api\/tasks\/\d+$/) && method === "POST") {
+            response = await editTask(req, url, db);
 
-        // POST /api/tasks (add task or edit task if body contains id or if route is /api/tasks/:id)
-        if (req.method === "POST" && url.pathname === "/api/tasks") {
-          return withCors(await addTask(req, db));
-        }
+            // ---------- logs ----------
+          } else if (path === "/api/logs" && method === "GET") {
+            response = await getLogs(url, db);
+          } else if (path === "/api/logs" && method === "DELETE") {
+            response = await clearLogs(url, db);
+          } else if (
+            path.match(/^\/api\/logs\/detail\/\d+$/) &&
+            method === "GET"
+          ) {
+            response = await getLogDetail(url, db);
+          } else if (path.match(/^\/api\/logs\/\d+$/) && method === "GET") {
+            response = await getLog(url, db);
+          } else if (path.match(/^\/api\/logs\/\d+$/) && method === "DELETE") {
+            response = await clearLogs(url, db);
+          } else {
+            response = error("Not Found", 404);
+          }
 
-        if (
-          req.method === "POST" &&
-          url.pathname.startsWith("/api/tasks/") &&
-          !url.pathname.endsWith("/run") &&
-          !url.pathname.endsWith("/toggle") &&
-          !url.pathname.endsWith("/edit")
-        ) {
-          return withCors(await editTask(req, url, db));
+          return withCors(response);
+        } catch (err) {
+          logger.error(`API ${method} ${path} failed: ${err}`);
+          return withCors(json({ error: "Internal Server Error" }, 500));
         }
-
-        // GET /api/logs
-        if (url.pathname === "/api/logs" && req.method === "GET") {
-          return withCors(await getLogs(url, db));
-        }
-
-        // GET /api/logs/:task_id
-        if (url.pathname.startsWith("/api/logs/") && req.method === "GET") {
-          return withCors(await getLog(url, db));
-        }
-
-        // DELETE /api/logs or /api/logs/:task_id
-        if (
-          (url.pathname === "/api/logs" ||
-            url.pathname.startsWith("/api/logs/")) &&
-          req.method === "DELETE"
-        ) {
-          return withCors(await clearLogs(url, db));
-        }
-
-        // DELETE /api/tasks/:id
-        if (url.pathname.startsWith("/api/tasks/") && req.method === "DELETE") {
-          return withCors(await deleteTask(url, db));
-        }
-
-        // POST /api/shutdown
-        if (url.pathname === "/api/shutdown" && req.method === "POST") {
-          return withCors(await shutdownDaemon());
-        }
-
-        // Get /api/version
-        if (url.pathname === "/api/version" && req.method === "GET") {
-          return withCors(await getAppVersion());
-        }
-
-        // Get /api/health
-        if (url.pathname === "/api/health" && req.method === "GET") {
-          return withCors(await getHealth());
-        }
-
-        return withCors(new Response("Not Found", { status: 404 }));
       },
     });
-  } catch (error: any) {
-    if (error.code === "EADDRINUSE") {
+  } catch (err: any) {
+    if (err.code === "EADDRINUSE") {
       console.error(
         `
 ❌ ERROR: Cronify Daemon is already running on port ${port}.`,
@@ -156,11 +191,13 @@ export function startServer(db: Database, port: number) {
 `,
       );
       process.exit(1);
-    } else {
-      throw error;
     }
+
+    throw err;
   }
 
-  logger.info(`🌐 Cronify API now listening on http://127.0.0.1:${port}
-`);
+  const config = initConfig();
+  logger.info(
+    `🌐 Cronify API now listening on http://127.0.0.1:${config.port}\n`,
+  );
 }

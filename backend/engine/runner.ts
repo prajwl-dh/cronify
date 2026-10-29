@@ -1,28 +1,49 @@
 import { Database } from "bun:sqlite";
+import { initConfig } from "../config/config";
+import type { LogTrigger } from "../types/logType";
 import type { Task } from "../types/taskType";
 import { logger } from "../utils/logger";
 
+/** Tasks currently executing, used to prevent overlapping runs. */
+const runningTasks = new Set<number>();
+
+export function getRunningTaskIds(): number[] {
+  return [...runningTasks];
+}
+
+export function isTaskRunning(taskId: number): boolean {
+  return runningTasks.has(taskId);
+}
+
+type CommandResult = {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+};
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
- * Executes a scheduled task command and stores
- * the execution result inside the logs table.
+ * Runs a command in the user's shell, optionally killing it after a
+ * timeout. A killed process is reported with exit code 124.
  */
-export async function executeTask(db: Database, task: Task) {
-  const executedAt = Date.now();
-
-  // Detect the correct shell based on the operating system
+async function runCommand(
+  command: string,
+  timeoutMs: number,
+): Promise<CommandResult> {
   const isWindows = process.platform === "win32";
-
   const shell = isWindows ? "cmd.exe" : process.env.SHELL || "/bin/zsh";
-
   const shellArgs = isWindows ? ["/c"] : ["-ilc"];
 
   let stdoutText = "";
   let stderrText = "";
   let exitCode: number | null = null;
+  let timedOut = false;
 
   try {
-    // Spawn the task command using the system shell
-    const proc = Bun.spawn([shell, ...shellArgs, task.command], {
+    const proc = Bun.spawn([shell, ...shellArgs, command], {
       stdout: "pipe",
       stderr: "pipe",
       env: {
@@ -31,57 +52,158 @@ export async function executeTask(db: Database, task: Task) {
       },
     });
 
-    if (proc.stdout) stdoutText = await new Response(proc.stdout).text();
-    if (proc.stderr) stderrText = await new Response(proc.stderr).text();
+    const timeout =
+      timeoutMs > 0
+        ? setTimeout(() => {
+            timedOut = true;
+            proc.kill();
+          }, timeoutMs)
+        : null;
 
-    exitCode = await proc.exited;
+    const [out, err, code] = await Promise.all([
+      proc.stdout ? new Response(proc.stdout).text() : Promise.resolve(""),
+      proc.stderr ? new Response(proc.stderr).text() : Promise.resolve(""),
+      proc.exited,
+    ]);
+
+    if (timeout) clearTimeout(timeout);
+
+    stdoutText = out;
+    stderrText = err;
+    exitCode = code;
+
+    if (timedOut) {
+      exitCode = 124;
+      stderrText =
+        `${stderrText}\n[cronify] Command timed out after ${timeoutMs} ms and was terminated.`.trim();
+    }
   } catch (error: any) {
-    stderrText = error.message || "Unknown spawn error";
+    stderrText = error?.message || "Unknown spawn error";
     exitCode = -1;
-  } finally {
-    // Reset task status so it becomes schedulable again
-    db.query(
-      `
-              UPDATE tasks
-              SET status = 'inactive'
-              WHERE id = ? AND status = 'active'`,
-    ).run(task.id);
+  }
 
-    // Store execution output and metadata into logs table
-    try {
-      db.query(
-        `
-                INSERT INTO logs (task_id, executed_at, stdout, stderr, exit_code)
-                VALUES (?, ?, ?, ?, ?)
-            `,
-      ).run(
-        task.id,
-        executedAt,
-        stdoutText.trim(),
-        stderrText.trim(),
-        exitCode,
+  return {
+    stdout: stdoutText.trim(),
+    stderr: stderrText.trim(),
+    exitCode: exitCode ?? -1,
+  };
+}
+
+/**
+ * Executes a task command, retrying when configured, then stores the
+ * execution result and updates the task's denormalized statistics.
+ *
+ * A task never runs twice at the same time; a second trigger while it
+ * is already running is skipped.
+ */
+export async function executeTask(
+  db: Database,
+  task: Task,
+  trigger: LogTrigger = "schedule",
+): Promise<boolean> {
+  if (runningTasks.has(task.id)) {
+    logger.warn(
+      `Task ${task.id} is already running; skipped another ${trigger} trigger.`,
+    );
+    return false;
+  }
+
+  runningTasks.add(task.id);
+
+  const startedAt = Date.now();
+  const config = initConfig();
+  const timeoutMs = task.timeout_ms ?? config.defaultTimeoutMs ?? 0;
+  const maxRetries = Math.max(0, task.max_retries ?? 0);
+
+  let result: CommandResult = { stdout: "", stderr: "", exitCode: -1 };
+  let attempt = 0;
+
+  try {
+    for (attempt = 1; attempt <= maxRetries + 1; attempt++) {
+      result = await runCommand(task.command, timeoutMs);
+
+      if (result.exitCode === 0 || attempt > maxRetries) break;
+
+      logger.warn(
+        `Task ${task.id} failed with exit code ${result.exitCode}; retrying (${attempt}/${maxRetries}).`,
       );
 
-      logger.info(`Executing task ${task.id}: ${task.command}`);
+      await sleep(500 * attempt);
+    }
+  } finally {
+    const finishedAt = Date.now();
+    const durationMs = finishedAt - startedAt;
+    const succeeded = result.exitCode === 0;
 
-      if (exitCode === 0) {
-        logger.info(
-          `✅ Task ${task.id}: ${task.command} , finished successfully (exit code ${exitCode})\n` +
-            (stdoutText
-              ? `--- STDOUT ---\n${stdoutText}`
-              : "--- STDOUT ---\n<empty>"),
+    try {
+      db.transaction(() => {
+        db.query(
+          `
+          INSERT INTO logs (
+            task_id, executed_at, duration_ms, attempt, trigger, stdout, stderr, exit_code
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `,
+        ).run(
+          task.id,
+          startedAt,
+          durationMs,
+          attempt,
+          trigger,
+          result.stdout,
+          result.stderr,
+          result.exitCode,
         );
-      } else {
-        logger.error(
-          `❌ Task ${task.id}: ${task.command} , failed (exit code ${exitCode})\n` +
-            (stdoutText ? `--- STDOUT ---\n${stdoutText}\n` : "") +
-            (stderrText ? `--- STDERR ---\n${stderrText}` : "<no stderr>"),
+
+        db.query(
+          `
+          UPDATE tasks
+          SET
+            status = CASE WHEN status = 'active' THEN 'inactive' ELSE status END,
+            last_run_at = ?,
+            last_exit_code = ?,
+            last_duration_ms = ?,
+            run_count = run_count + 1,
+            success_count = success_count + ?,
+            failure_count = failure_count + ?,
+            updated_at = ?
+          WHERE id = ?
+          `,
+        ).run(
+          startedAt,
+          result.exitCode,
+          durationMs,
+          succeeded ? 1 : 0,
+          succeeded ? 0 : 1,
+          finishedAt,
+          task.id,
         );
-      }
+      })();
     } catch (dbError) {
       logger.error(
         `❌ Failed to save log for task ${task.id}. Error: ${dbError}`,
       );
     }
+
+    runningTasks.delete(task.id);
+
+    if (succeeded) {
+      logger.info(
+        `✅ Task ${task.id} (${task.name}) finished in ${durationMs} ms with exit code 0\n` +
+          (result.stdout
+            ? `--- STDOUT ---\n${result.stdout}`
+            : "--- STDOUT ---\n<empty>"),
+      );
+    } else {
+      logger.error(
+        `❌ Task ${task.id} (${task.name}) failed in ${durationMs} ms with exit code ${result.exitCode}\n` +
+          (result.stdout ? `--- STDOUT ---\n${result.stdout}\n` : "") +
+          (result.stderr
+            ? `--- STDERR ---\n${result.stderr}`
+            : "--- STDERR ---\n<no stderr>"),
+      );
+    }
   }
+
+  return true;
 }
