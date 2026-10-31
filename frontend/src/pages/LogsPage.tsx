@@ -21,9 +21,9 @@ import {
   ConfirmDialog,
   EmptyState,
   ErrorState,
+  Dropdown,
   IconButton,
   Pill,
-  Select,
   Skeleton,
 } from "../components/ui";
 import { CopyButton } from "../components/CopyButton";
@@ -32,12 +32,11 @@ import {
   formatDuration,
   formatNumber,
   formatPercent,
-  formatRelative,
   formatTime,
   logResult,
   triggerLabel,
 } from "../lib/format";
-import { navigate, useDebounced, useNow } from "../lib/route";
+import { navigate, useDebounced } from "../lib/route";
 import { useToast } from "../lib/toast";
 
 function LoadingLogs() {
@@ -167,39 +166,37 @@ function LogRow({
   log,
   expanded,
   onToggle,
-  now,
 }: {
   log: Log;
   expanded: boolean;
   onToggle: () => void;
-  now: number;
 }) {
   const success = log.exit_code === 0;
 
   return (
     <div className={`log-entry${expanded ? " log-entry-open" : ""}`}>
-      <div className="log-row">
+      <div
+        className="log-row"
+        onClick={() => {
+          if (window.getSelection()?.toString()) return;
+          onToggle();
+        }}
+      >
         <span className="log-time" role="cell">
           <span className="mono">{formatTime(log.executed_at)}</span>
-          <span className="cell-sub">
-            {formatRelative(log.executed_at, now)}
-          </span>
         </span>
 
-        <span className="log-task" role="cell">
+        <span className="log-task" role="cell" title={log.task_command}>
           <span className="log-task-name">
             {log.task_name || `Task ${log.task_id}`}
           </span>
-          <span className="cell-sub mono" title={log.task_command}>
-            {log.task_command || `task #${log.task_id}`}
-          </span>
         </span>
 
-        <span role="cell">
+        <span className="log-result" role="cell">
           <Pill tone={success ? "positive" : "negative"}>{logResult(log)}</Pill>
         </span>
 
-        <span className="log-number" role="cell">
+        <span className="log-number log-duration" role="cell">
           <span className="mono">{formatDuration(log.duration_ms)}</span>
         </span>
 
@@ -207,16 +204,19 @@ function LogRow({
           {triggerLabel(log.trigger)}
         </span>
 
-        <span className="log-number" role="cell">
+        <span className="log-number log-attempt" role="cell">
+          <span className="cell-label">Attempt</span>
           <span className="mono">{log.attempt}</span>
-          <span className="cell-sub">attempt</span>
         </span>
 
         <span className="log-expand" role="cell">
           <IconButton
             label={expanded ? "Hide execution output" : "Show execution output"}
             aria-expanded={expanded}
-            onClick={onToggle}
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggle();
+            }}
           >
             <ChevronDown
               size={15}
@@ -233,7 +233,6 @@ function LogRow({
 
 export function LogsPage({ initialTaskId }: { initialTaskId: number | null }) {
   const queryClient = useQueryClient();
-  const now = useNow(1000);
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -427,44 +426,44 @@ export function LogsPage({ initialTaskId }: { initialTaskId: number | null }) {
               aria-label="Search execution output"
             />
           </div>
-          <Select
-            value={status}
-            onChange={(event) =>
-              setStatus(event.target.value as LogQuery["status"])
+          <Dropdown
+            value={status ?? "all"}
+            onChange={(value) => setStatus(value as LogQuery["status"])}
+            label="Filter by result"
+            options={[
+              { value: "all", label: "All results" },
+              { value: "success", label: "Succeeded" },
+              { value: "error", label: "Failed" },
+            ]}
+          />
+          <Dropdown
+            value={taskId === null ? "" : String(taskId)}
+            onChange={(value) =>
+              setTaskId(value ? Number(value) : null)
             }
-            aria-label="Filter by result"
-          >
-            <option value="all">All results</option>
-            <option value="success">Succeeded</option>
-            <option value="error">Failed</option>
-          </Select>
-          <Select
-            value={taskId ?? ""}
-            onChange={(event) =>
-              setTaskId(event.target.value ? Number(event.target.value) : null)
+            label="Filter by task"
+            options={[
+              { value: "", label: "All tasks" },
+              ...(tasksQuery.data ?? []).map((task) => ({
+                value: String(task.id),
+                label: task.name,
+              })),
+            ]}
+          />
+          <Dropdown
+            value={timeRange ?? "all"}
+            onChange={(value) =>
+              setTimeRange(value as LogQuery["timeRange"])
             }
-            aria-label="Filter by task"
-          >
-            <option value="">All tasks</option>
-            {(tasksQuery.data ?? []).map((task) => (
-              <option key={task.id} value={task.id}>
-                {task.name}
-              </option>
-            ))}
-          </Select>
-          <Select
-            value={timeRange}
-            onChange={(event) =>
-              setTimeRange(event.target.value as LogQuery["timeRange"])
-            }
-            aria-label="Filter by time"
-          >
-            <option value="all">Any time</option>
-            <option value="1h">Last hour</option>
-            <option value="24h">Last 24 hours</option>
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-          </Select>
+            label="Filter by time"
+            options={[
+              { value: "all", label: "Any time" },
+              { value: "1h", label: "Last hour" },
+              { value: "24h", label: "Last 24 hours" },
+              { value: "7d", label: "Last 7 days" },
+              { value: "30d", label: "Last 30 days" },
+            ]}
+          />
         </div>
         <span className="toolbar-count">
           <span className="mono">{formatNumber(summary.total)}</span>{" "}
@@ -535,7 +534,6 @@ export function LogsPage({ initialTaskId }: { initialTaskId: number | null }) {
                 onToggle={() =>
                   setExpanded(expanded === log.id ? null : log.id)
                 }
-                now={now}
               />
             ))}
           </div>

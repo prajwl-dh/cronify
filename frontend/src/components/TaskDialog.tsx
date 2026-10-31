@@ -7,7 +7,7 @@ import type { Task, TaskInput } from "../api/types";
 import { formatDateTime, formatRelative } from "../lib/format";
 import { useDebounced, useNow } from "../lib/route";
 import { useToast } from "../lib/toast";
-import { Button, Field, IconButton, Select, TextInput } from "./ui";
+import { Button, Dropdown, Field, IconButton, TextInput } from "./ui";
 
 const presets = [
   { label: "Every 5 min", value: "*/5 * * * *" },
@@ -243,19 +243,19 @@ export function TaskDialog({
                   htmlFor="task-retries"
                   hint="Retry a failed command up to 10 times."
                 >
-                  <Select
+                  <Dropdown
                     id="task-retries"
                     value={form.retries}
-                    onChange={(event) => update("retries", event.target.value)}
-                  >
-                    {Array.from({ length: 11 }, (_, value) => (
-                      <option key={value} value={value}>
-                        {value === 0
+                    onChange={(value) => update("retries", value)}
+                    label="Retries"
+                    options={Array.from({ length: 11 }, (_, value) => ({
+                      value: String(value),
+                      label:
+                        value === 0
                           ? "No retries"
-                          : `${value} ${value === 1 ? "retry" : "retries"}`}
-                      </option>
-                    ))}
-                  </Select>
+                          : `${value} ${value === 1 ? "retry" : "retries"}`,
+                    }))}
+                  />
                 </Field>
               </div>
 
@@ -308,7 +308,7 @@ export function TaskDialog({
                       {preview.description}
                     </p>
                     <ol className="next-runs">
-                      {preview.nextRuns.map((timestamp) => (
+                      {preview.nextRuns.slice(0, 4).map((timestamp) => (
                         <li key={timestamp}>
                           <span className="mono">
                             {formatDateTime(timestamp)}
@@ -325,7 +325,7 @@ export function TaskDialog({
                   </div>
                 ) : (
                   <p className="field-hint">
-                    The next five runs appear here as you type.
+                    Upcoming runs appear here as you type.
                   </p>
                 )}
               </div>

@@ -20,17 +20,12 @@ import {
   ConfirmDialog,
   EmptyState,
   ErrorState,
+  Dropdown,
   IconButton,
   Pill,
-  Select,
   Skeleton,
 } from "../components/ui";
-import {
-  formatDateTime,
-  formatRelative,
-  formatTime,
-  statusMeta,
-} from "../lib/format";
+import { formatRelative, formatTime, statusMeta } from "../lib/format";
 import { useNow } from "../lib/route";
 import { useToast } from "../lib/toast";
 
@@ -317,7 +312,7 @@ export function TasksPage({ onEdit }: { onEdit: (task: Task | null) => void }) {
         ))}
       </div>
 
-      <div className="toolbar">
+      <div className="toolbar task-toolbar">
         <div className="toolbar-left">
           <div className="search-field">
             <Search size={14} aria-hidden="true" />
@@ -329,17 +324,18 @@ export function TasksPage({ onEdit }: { onEdit: (task: Task | null) => void }) {
               aria-label="Search tasks"
             />
           </div>
-          <Select
+          <Dropdown
             className="sort-select"
             value={sort}
-            onChange={(event) => setSort(event.target.value as Sort)}
-            aria-label="Sort tasks"
-          >
-            <option value="next">Next run</option>
-            <option value="name">Name</option>
-            <option value="last_run">Last run</option>
-            <option value="runs">Most runs</option>
-          </Select>
+            onChange={(value) => setSort(value as Sort)}
+            label="Sort tasks"
+            options={[
+              { value: "next", label: "Next run" },
+              { value: "name", label: "Name" },
+              { value: "last_run", label: "Last run" },
+              { value: "runs", label: "Most runs" },
+            ]}
+          />
         </div>
         <span className="toolbar-count">
           <span className="mono">{filtered.length}</span> of{" "}
@@ -481,6 +477,19 @@ export function TasksPage({ onEdit }: { onEdit: (task: Task | null) => void }) {
                   className={`task-row${taskSelected ? " task-row-selected" : ""}`}
                   role="row"
                   key={task.id}
+                  onClick={(event) => {
+                    if (
+                      (event.target as HTMLElement).closest(
+                        "button, input, a, [role='menu']",
+                      )
+                    ) {
+                      return;
+                    }
+                    if (window.getSelection()?.toString()) {
+                      return;
+                    }
+                    onEdit(task);
+                  }}
                 >
                   <span className="check-cell" role="cell">
                     <input
@@ -496,19 +505,14 @@ export function TasksPage({ onEdit }: { onEdit: (task: Task | null) => void }) {
                       type="button"
                       className="link-button"
                       onClick={() => onEdit(task)}
+                      title={task.command}
                     >
                       {task.name}
                     </button>
-                    <span className="cell-sub mono" title={task.command}>
-                      {task.command}
-                    </span>
                   </span>
 
                   <span className="task-schedule" role="cell">
                     <span className="mono">{task.cron_string}</span>
-                    <span className="cell-sub">
-                      {task.schedule_description || "Custom schedule"}
-                    </span>
                   </span>
 
                   <span className="task-status" role="cell">
@@ -518,40 +522,24 @@ export function TasksPage({ onEdit }: { onEdit: (task: Task | null) => void }) {
                   <span className="task-when task-next" role="cell">
                     <span className="cell-label">Next run</span>
                     <span className="mono">
-                      {task.status === "obsolete"
-                        ? "—"
-                        : formatRelative(task.next_run, now)}
-                    </span>
-                    <span className="cell-sub">
-                      {task.status === "obsolete"
-                        ? "finished"
-                        : formatDateTime(task.next_run)}
+                      {task.status === "inactive" || task.status === "active"
+                        ? formatRelative(task.next_run, now)
+                        : "—"}
                     </span>
                   </span>
 
                   <span className="task-when task-last" role="cell">
                     <span className="cell-label">Last run</span>
-                    {task.last_run_at ? (
-                      <>
-                        <span className="mono">
-                          {formatRelative(task.last_run_at, now)}
-                        </span>
-                        <span className="cell-sub">
-                          exit {task.last_exit_code ?? "—"}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="dash">—</span>
-                        <span className="cell-sub">never run</span>
-                      </>
-                    )}
+                    <span className="mono">
+                      {task.last_run_at
+                        ? formatRelative(task.last_run_at, now)
+                        : "—"}
+                    </span>
                   </span>
 
                   <span className="task-runs num" role="cell">
                     <span className="cell-label">Runs</span>
                     <span className="mono">{task.run_count}</span>
-                    <span className="cell-sub">{task.success_count} ok</span>
                   </span>
 
                   <span className="task-actions" role="cell">
@@ -640,13 +628,6 @@ export function TasksPage({ onEdit }: { onEdit: (task: Task | null) => void }) {
           </div>
         )}
       </div>
-
-      <p className="table-foot">
-        <span>
-          Cronify checks the schedule every second. Tasks never overlap: a
-          trigger that arrives while a command is still running is skipped.
-        </span>
-      </p>
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}

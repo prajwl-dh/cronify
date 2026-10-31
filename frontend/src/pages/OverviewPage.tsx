@@ -338,7 +338,7 @@ export function OverviewPage({ onNewTask }: { onNewTask: () => void }) {
           )}
         </div>
 
-        <div className="panel span-5">
+        <div className="panel panel-stack span-5">
           <div className="panel-head">
             <div>
               <h2>After that</h2>

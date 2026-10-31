@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { HourBucket } from "../api/types";
 
 function niceTop(max: number) {
@@ -8,6 +9,7 @@ function niceTop(max: number) {
 }
 
 export function ActivityChart({ buckets }: { buckets: HourBucket[] }) {
+  const [hover, setHover] = useState<number | null>(null);
   const maxRuns = Math.max(0, ...buckets.map((bucket) => bucket.runs));
   const top = niceTop(Math.max(1, maxRuns));
   const ticks = [1, 0.75, 0.5, 0.25, 0];
@@ -38,20 +40,49 @@ export function ActivityChart({ buckets }: { buckets: HourBucket[] }) {
           </div>
 
           <div className="activity-bars">
-            {buckets.map((bucket) => {
+            {buckets.map((bucket, index) => {
               const height = (bucket.runs / top) * 100;
               const label = `${bucket.label}: ${bucket.runs} ${
                 bucket.runs === 1 ? "execution" : "executions"
               }${bucket.failures > 0 ? `, ${bucket.failures} failed` : ""}`;
+              const tipAlign =
+                index < 3
+                  ? { left: 0 }
+                  : index > buckets.length - 4
+                    ? { right: 0 }
+                    : { left: "50%", transform: "translateX(-50%)" };
 
               return (
-                <div className="activity-col" key={bucket.start} title={label}>
+                <div
+                  className="activity-col"
+                  key={bucket.start}
+                  onMouseEnter={() => setHover(index)}
+                  onMouseLeave={() => setHover(null)}
+                >
                   <span
                     className="activity-bar"
                     style={{ height: `${height}%` }}
                     aria-hidden="true"
                   />
                   <span className="sr-only">{label}</span>
+                  {hover === index ? (
+                    <span
+                      className="chart-tip"
+                      role="tooltip"
+                      style={{ bottom: `calc(${height}% + 8px)`, ...tipAlign }}
+                    >
+                      <span className="chart-tip-time">{bucket.label}</span>
+                      <span className="chart-tip-row">
+                        <span className="mono">{bucket.runs}</span>
+                        {bucket.runs === 1 ? " execution" : " executions"}
+                      </span>
+                      {bucket.failures > 0 ? (
+                        <span className="chart-tip-row negative">
+                          <span className="mono">{bucket.failures}</span> failed
+                        </span>
+                      ) : null}
+                    </span>
+                  ) : null}
                 </div>
               );
             })}

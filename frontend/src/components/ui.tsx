@@ -3,10 +3,17 @@ import {
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
-  type SelectHTMLAttributes,
 } from "react";
-import { AlertTriangle, Loader2, RefreshCw, X } from "lucide-react";
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
+import { AlertTriangle, Check, ChevronDown, Loader2, RefreshCw, X } from "lucide-react";
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Listbox,
+  ListboxButton,
+  ListboxOption,
+  ListboxOptions,
+} from "@headlessui/react";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -181,16 +188,64 @@ export const TextInput = forwardRef<
   return <input ref={ref} className={`input ${className}`.trim()} {...props} />;
 });
 
-export const Select = forwardRef<
-  HTMLSelectElement,
-  SelectHTMLAttributes<HTMLSelectElement>
->(function Select({ className = "", children, ...props }, ref) {
+export type DropdownOption = { value: string; label: string };
+
+/**
+ * Custom listbox used everywhere a native <select> would show the browser's
+ * own menu. Keyboard, focus and type-ahead come from Headless UI; the button
+ * and menu are ours.
+ */
+export function Dropdown({
+  value,
+  onChange,
+  options,
+  label,
+  id,
+  className = "",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: DropdownOption[];
+  label: string;
+  id?: string;
+  className?: string;
+}) {
+  const selected = options.find((option) => option.value === value);
+
   return (
-    <select ref={ref} className={`select ${className}`.trim()} {...props}>
-      {children}
-    </select>
+    <div className={`dropdown ${className}`.trim()}>
+      <Listbox value={value} onChange={onChange}>
+        <ListboxButton id={id} className="dropdown-button" aria-label={label}>
+          <span className="dropdown-value">{selected?.label ?? value}</span>
+          <ChevronDown
+            size={14}
+            className="dropdown-chevron"
+            aria-hidden="true"
+          />
+        </ListboxButton>
+        <ListboxOptions
+          anchor="bottom start"
+          className="menu dropdown-menu"
+        >
+          {options.map((option) => (
+            <ListboxOption
+              key={option.value}
+              value={option.value}
+              className="menu-item dropdown-option"
+            >
+              {({ selected: isSelected }) => (
+                <>
+                  <span className="dropdown-option-label">{option.label}</span>
+                  {isSelected ? <Check size={13} aria-hidden="true" /> : null}
+                </>
+              )}
+            </ListboxOption>
+          ))}
+        </ListboxOptions>
+      </Listbox>
+    </div>
   );
-});
+}
 
 export function ConfirmDialog({
   open,
