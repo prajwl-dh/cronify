@@ -2150,6 +2150,14 @@ input[type="number"]::-webkit-inner-spin-button {
   overflow: auto;
 }
 
+.output-success {
+  color: var(--pill-positive-ink);
+}
+
+.output-error {
+  color: var(--pill-negative-ink);
+}
+
 .output-empty {
   padding: 10px 12px;
   border: 1px dashed var(--control);

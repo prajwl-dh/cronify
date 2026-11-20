@@ -3,6 +3,7 @@ import { initConfig } from "../config/config";
 import type { LogTrigger } from "../types/logType";
 import type { Task } from "../types/taskType";
 import { logger } from "../utils/logger";
+import { routeOutput, sanitizeOutput } from "../utils/output";
 
 /** Tasks currently executing, used to prevent overlapping runs. */
 const runningTasks = new Set<number>();
@@ -68,8 +69,8 @@ async function runCommand(
 
     if (timeout) clearTimeout(timeout);
 
-    stdoutText = out;
-    stderrText = err;
+    stdoutText = sanitizeOutput(out);
+    stderrText = sanitizeOutput(err);
     exitCode = code;
 
     if (timedOut) {
@@ -78,13 +79,12 @@ async function runCommand(
         `${stderrText}\n[cronify] Command timed out after ${timeoutMs} ms and was terminated.`.trim();
     }
   } catch (error: any) {
-    stderrText = error?.message || "Unknown spawn error";
+    stderrText = sanitizeOutput(error?.message || "Unknown spawn error");
     exitCode = -1;
   }
 
   return {
-    stdout: stdoutText.trim(),
-    stderr: stderrText.trim(),
+    ...routeOutput(stdoutText, stderrText, exitCode ?? -1),
     exitCode: exitCode ?? -1,
   };
 }

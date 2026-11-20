@@ -139,7 +139,7 @@ function LogDetail({ log }: { log: Log }) {
           ) : null}
         </div>
         {full.stdout ? (
-          <pre className="output">{full.stdout}</pre>
+          <pre className="output output-success">{full.stdout}</pre>
         ) : (
           <p className="output-empty">No standard output recorded.</p>
         )}
