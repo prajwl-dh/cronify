@@ -4,7 +4,14 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
 } from "react";
-import { AlertTriangle, Check, ChevronDown, Loader2, RefreshCw, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  ChevronDown,
+  Loader2,
+  RefreshCw,
+  X,
+} from "lucide-react";
 import {
   Dialog,
   DialogPanel,
@@ -223,10 +230,7 @@ export function Dropdown({
             aria-hidden="true"
           />
         </ListboxButton>
-        <ListboxOptions
-          anchor="bottom start"
-          className="menu dropdown-menu"
-        >
+        <ListboxOptions anchor="bottom start" className="menu dropdown-menu">
           {options.map((option) => (
             <ListboxOption
               key={option.value}

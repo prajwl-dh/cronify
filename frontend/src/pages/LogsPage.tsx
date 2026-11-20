@@ -438,9 +438,7 @@ export function LogsPage({ initialTaskId }: { initialTaskId: number | null }) {
           />
           <Dropdown
             value={taskId === null ? "" : String(taskId)}
-            onChange={(value) =>
-              setTaskId(value ? Number(value) : null)
-            }
+            onChange={(value) => setTaskId(value ? Number(value) : null)}
             label="Filter by task"
             options={[
               { value: "", label: "All tasks" },
@@ -452,9 +450,7 @@ export function LogsPage({ initialTaskId }: { initialTaskId: number | null }) {
           />
           <Dropdown
             value={timeRange ?? "all"}
-            onChange={(value) =>
-              setTimeRange(value as LogQuery["timeRange"])
-            }
+            onChange={(value) => setTimeRange(value as LogQuery["timeRange"])}
             label="Filter by time"
             options={[
               { value: "all", label: "Any time" },

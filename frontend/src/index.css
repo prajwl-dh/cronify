@@ -2797,10 +2797,9 @@ input[type="number"]::-webkit-inner-spin-button {
 @media (max-width: 1100px) and (min-width: 761px) {
   .task-head,
   .task-row {
-    grid-template-columns: 18px minmax(0, 1.8fr) minmax(
-        120px,
-        1.2fr
-      ) 88px 104px 96px 64px;
+    grid-template-columns:
+      18px minmax(0, 1.8fr) minmax(120px, 1.2fr)
+      88px 104px 96px 64px;
     grid-template-areas: "check identity schedule status next last actions";
     gap: 10px;
     padding: 0 14px;
