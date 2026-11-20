@@ -131,6 +131,18 @@ function LogDetail({ log }: { log: Log }) {
         </span>
       </div>
 
+      {full.task_command ? (
+        <div className="output-block">
+          <div className="output-head">
+            <span>Command</span>
+          </div>
+          <div className="cli-line log-command">
+            <code>{full.task_command}</code>
+            <CopyButton text={full.task_command} label="Command" />
+          </div>
+        </div>
+      ) : null}
+
       <div className="output-block">
         <div className="output-head">
           <span>stdout</span>

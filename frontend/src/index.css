@@ -1830,8 +1830,8 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .task-runs {
   grid-area: runs;
-  align-items: flex-end;
-  text-align: right;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .task-actions {
@@ -2025,6 +2025,17 @@ input[type="number"]::-webkit-inner-spin-button {
   background: transparent;
 }
 
+/* A collapsed row toggles on click, so keep its summary values from being
+   selected. Once expanded, the values are selectable again for copying. */
+.log-entry:not(.log-entry-open) .log-time,
+.log-entry:not(.log-entry-open) .log-task,
+.log-entry:not(.log-entry-open) .log-result,
+.log-entry:not(.log-entry-open) .log-duration,
+.log-entry:not(.log-entry-open) .log-trigger,
+.log-entry:not(.log-entry-open) .log-attempt {
+  user-select: none;
+}
+
 .log-time {
   grid-area: time;
   display: flex;
@@ -2076,8 +2087,8 @@ input[type="number"]::-webkit-inner-spin-button {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  align-items: flex-end;
-  text-align: right;
+  align-items: flex-start;
+  text-align: left;
   min-width: 0;
 }
 
@@ -2417,6 +2428,13 @@ input[type="number"]::-webkit-inner-spin-button {
   color: var(--muted);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* Execution commands stay on one line; long ones scroll horizontally. */
+.log-command code {
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
 }
 
 .cli-line .btn {
@@ -3010,9 +3028,9 @@ input[type="number"]::-webkit-inner-spin-button {
   .log-attempt {
     flex-direction: row;
     align-items: baseline;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 4px;
-    text-align: right;
+    text-align: left;
   }
 
   .log-expand {
